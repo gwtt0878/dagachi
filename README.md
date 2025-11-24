@@ -65,8 +65,10 @@ dagachi/
 
 ## ⚙️ 환경변수 설정
 
-FE: ./dagachi_fe/.env.production
-BE: ./.env.fe
+FE: `./dagachi_fe/.env.production`
+
+
+BE: `./.env.fe`
 
 ## 📄 라이선스
 
