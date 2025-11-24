@@ -1,4 +1,22 @@
 services:
+    database:
+        image: mysql:8.4
+        container_name: dagachi_db
+        env_file:
+            - ./.env.mysql
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./dagachi_db/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+        networks:
+            - app-network
+        ports:
+            - 3306:3306
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    
     backend:
         build:
             context: ./dagachi_be
@@ -6,6 +24,9 @@ services:
         container_name: dagachi_be
         env_file:
             - ./.env.be
+        depends_on:
+            database:
+                condition: service_healthy
         networks:
             - app-network
         ports:
@@ -24,3 +45,6 @@ services:
 networks:
     app-network:
         driver: bridge
+
+volumes:
+    mysql_data:
