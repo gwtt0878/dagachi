@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: dagachi
+
+server:
+  port: ${SERVER_PORT}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}

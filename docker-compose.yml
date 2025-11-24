@@ -1,0 +1,26 @@
+services:
+    backend:
+        build:
+            context: ./dagachi_be
+            dockerfile: Dockerfile
+        container_name: dagachi_be
+        env_file:
+            - ./.env.be
+        networks:
+            - app-network
+        ports:
+            - 3000:3000
+    frontend:
+        build:
+            context: ./dagachi_fe
+            dockerfile: Dockerfile
+        container_name: dagachi_fe
+        ports:
+            - 8080:80
+        depends_on:
+            - backend
+        networks:
+            - app-network
+networks:
+    app-network:
+        driver: bridge
