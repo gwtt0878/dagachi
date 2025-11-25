@@ -1,0 +1,221 @@
+/* 공통 컨테이너 */
+.form-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  background-color: #b1e2ff;
+}
+
+/* 폼 그룹 */
+.form-group {
+  margin-bottom: 15px;
+}
+
+/* 라벨 */
+.form-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #161618;
+}
+
+/* 인풋 필드 */
+.form-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #2a2a2a;
+  color: white;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #fbff06;
+}
+
+/* 버튼 */
+.btn {
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-primary {
+  background-color: #646cff;
+  color: white;
+  width: 100%;
+}
+
+.btn-secondary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-logout {
+  background-color: #888;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+/* 에러 메시지 */
+.error-message {
+  color: red;
+  margin-bottom: 15px;
+}
+
+/* 도움말 텍스트 */
+.help-text {
+  color: #888;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* 링크 그룹 */
+.link-group {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.link-group a {
+  color: #646cff;
+  text-decoration: none;
+}
+
+.link-group a:hover {
+  text-decoration: underline;
+}
+
+/* 헤더 버튼 그룹 */
+.header-buttons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+/* 페이지 컨테이너 */
+.page-container {
+  text-align: center;
+  padding: 50px;
+}
+
+.page-container h1 {
+  margin-bottom: 20px;
+}
+
+/* 카드 */
+.card {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 8px;
+  background-color: #edeace;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* 배지 */
+.badge {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.badge-project {
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.badge-study {
+  color: #2196F3;
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+/* 모달 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #1a1a1a;
+  padding: 0;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #fff;
+}
+
+.modal-body {
+  padding: 20px;
+  color: #ccc;
+}
+

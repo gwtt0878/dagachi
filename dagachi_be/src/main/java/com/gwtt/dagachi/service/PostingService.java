@@ -1,6 +1,6 @@
 package com.gwtt.dagachi.service;
 
-import com.gwtt.dagachi.dto.PostingResponse;
+import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.repository.PostingRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ public class PostingService {
 
   private final PostingRepository postingRepository;
 
-  public List<PostingResponse> getAllPostings() {
-    return postingRepository.findAll().stream().map(PostingResponse::of).toList();
+  public List<PostingResponseDto> getAllPostings() {
+    return postingRepository.findAll().stream().map(PostingResponseDto::of).toList();
   }
 }

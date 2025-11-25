@@ -1,95 +1,112 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import '../App.css'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Button from '../components/Button'
+import Modal from '../components/Modal'
+import '../styles/common.css'
+import type { Posting } from '../types'
+import api from '../api/auth'
+import { AxiosError } from 'axios'
 
-interface Posting {
-  id: number
-  title: string
-  description: string
-  type: string
-  createdAt: string
-}
+
 
 function PostingsPage() {
+  const navigate = useNavigate()
   const [postings, setPostings] = useState<Posting[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
-  useEffect(() => {
-    fetchPostings()
-  }, [])
-
-  const fetchPostings = async () => {
+  const fetchPostings = useCallback(async () => {
     setLoading(true)
     setError(null)
     
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
-      const response = await fetch(`${apiBaseUrl}/api/postings`)
-      
-      if (!response.ok) {
-        throw new Error('서버 응답 오류')
-      }
-      
-      const data = await response.json()
-      setPostings(data)
-      console.log('서버에서 받은 데이터:', data)
+      const response = await api.get<Posting[]>('/api/postings')
+      setPostings(response.data)
     } catch (err) {
+      if (err instanceof AxiosError && err.status === 403) {
+        navigate('/login')
+        return
+      }
       setError('게시글을 불러오는데 실패했습니다.')
       console.error('API 호출 오류:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [navigate])
+
+  useEffect(() => {
+    // 로그인 체크
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setShowLoginModal(true)
+      setLoading(false)
+      return
+    }
+    
+    fetchPostings()
+  }, [fetchPostings])
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: '#646cff', backgroundColor: '#edeace', padding: '10px 20px', borderRadius: '5px' }}>
+    <div className="page-container">
+      {/* 로그인 필요 모달 */}
+      <Modal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false)
+          navigate('/')
+        }}
+        title="🔒 로그인 필요"
+      >
+        <p style={{ marginBottom: '20px', fontSize: '16px', lineHeight: '1.6' }}>
+          프로젝트와 스터디 목록을 보려면 로그인이 필요합니다.
+        </p>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button
+            variant="primary"
+            onClick={() => navigate('/login')}
+            style={{ flex: 1 }}
+          >
+            로그인하기
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/')}
+            style={{ flex: 1 }}
+          >
+            홈으로
+          </Button>
+        </div>
+      </Modal>
+
+      <div className="link-group">
+        <button onClick={() => navigate('/')} className="btn btn-primary">
           ← 홈으로 돌아가기
-        </Link>
+        </button>
       </div>
 
       <h1>프로젝트 & 스터디 목록</h1>
 
       {loading && <p>불러오는 중...</p>}
       
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
       {!loading && !error && postings.length === 0 && (
         <p>등록된 게시글이 없습니다.</p>
       )}
 
       {!loading && postings.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
+        <div className="postings-list">
           {postings.map((posting) => (
-            <div key={posting.id} style={{ 
-              border: '1px solid #ccc', 
-              padding: '20px', 
-              margin: '15px 0',
-              borderRadius: '8px',
-              backgroundColor: '#edeace',
-              transition: 'transform 0.2s',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ margin: '0 0 10px 0' }}>{posting.title}</h2>
-                <span style={{ 
-                  fontSize: '14px', 
-                  color: posting.type === 'PROJECT' ? '#4CAF50' : '#2196F3',
-                  fontWeight: 'bold',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  backgroundColor: posting.type === 'PROJECT' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(33, 150, 243, 0.1)'
-                }}>
+            <div key={posting.id} className="card">
+              <div className="posting-header">
+                <h2 className="posting-title">{posting.title}</h2>
+                <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
                   {posting.type}
                 </span>
               </div>
-              <p style={{ margin: '10px 0', color: '#000000' }}>{posting.description}</p>
-              <p style={{ fontSize: '12px', color: '#888', margin: '10px 0 0 0' }}>
+              <p className="posting-description">{posting.description}</p>
+              <p className="posting-created-at">
                 {new Date(posting.createdAt).toLocaleDateString('ko-KR', {
                   year: 'numeric',
                   month: 'long',
@@ -103,17 +120,10 @@ function PostingsPage() {
         </div>
       )}
 
-      <div style={{ marginTop: '30px', textAlign: 'center' }}>
-        <button onClick={fetchPostings} style={{
-          padding: '10px 20px',
-          backgroundColor: '#646cff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}>
+      <div className="refresh-button">
+        <Button onClick={fetchPostings} variant="primary">
           새로고침
-        </button>
+        </Button>
       </div>
     </div>
   )

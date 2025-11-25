@@ -7,15 +7,15 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class PostingResponse {
+public class PostingResponseDto {
   private Long id;
   private String title;
   private String description;
   private String type; // PROJECT, STUDY
   private LocalDateTime createdAt;
 
-  public static PostingResponse of(Posting posting) {
-    return PostingResponse.builder()
+  public static PostingResponseDto of(Posting posting) {
+    return PostingResponseDto.builder()
         .id(posting.getId())
         .title(posting.getTitle())
         .description(posting.getDescription())
