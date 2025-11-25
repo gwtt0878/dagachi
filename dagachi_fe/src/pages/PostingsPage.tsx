@@ -6,6 +6,7 @@ import '../styles/common.css'
 import type { Posting } from '../types'
 import { getAllPostings } from '../api/posting'
 import { AxiosError } from 'axios'
+import { getTypeLabel, getStatusLabel } from '../constants'
 
 
 
@@ -112,12 +113,12 @@ function PostingsPage() {
               <div className="posting-header">
                 <h2 className="posting-title">{posting.title}</h2>
                 <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
-                  {posting.type}
+                  {getTypeLabel(posting.type)}
                 </span>
               </div>
               <div className="posting-status">
                 <span className={`badge ${posting.status === 'RECRUITING' ? 'badge-recruiting' : 'badge-closed'}`}>
-                  {posting.status}
+                  {getStatusLabel(posting.status)}
                 </span>
               </div>
               <div className="meta-item">

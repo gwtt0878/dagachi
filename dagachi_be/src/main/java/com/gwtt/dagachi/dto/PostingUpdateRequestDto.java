@@ -1,8 +1,5 @@
 package com.gwtt.dagachi.dto;
 
-import com.gwtt.dagachi.constants.PostingType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -10,11 +7,15 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.gwtt.dagachi.constants.PostingType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import com.gwtt.dagachi.constants.PostingStatus;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PostingRequestDto {
-
+public class PostingUpdateRequestDto {
+    
   @NotBlank(message = "제목은 필수 입력 항목입니다.")
   @Size(max = 100, message = "제목은 100자 이하여야 합니다.")
   private String title;
@@ -29,4 +30,8 @@ public class PostingRequestDto {
   @NotNull(message = "게시글 타입은 필수 입력 항목입니다.")
   @Enumerated(EnumType.STRING)
   private PostingType type;
+
+  @NotNull(message = "게시글 상태는 필수 입력 항목입니다.")
+  @Enumerated(EnumType.STRING)
+  private PostingStatus status;
 }

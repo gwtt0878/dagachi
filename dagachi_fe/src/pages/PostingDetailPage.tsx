@@ -8,6 +8,7 @@ import type { Posting } from '../types'
 import '../styles/common.css'
 import { AxiosError } from 'axios'
 import { getCurrentNickname } from '../api/auth'
+import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
 
 function PostingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -93,36 +94,6 @@ function PostingDetailPage() {
     } finally {
       setDeleting(false)
       setShowDeleteModal(false)
-    }
-  }
-
-  const getTypeLabel = (type: string) => {
-    return type === 'PROJECT' ? '프로젝트' : '스터디'
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'RECRUITING':
-        return '모집중'
-      case 'CLOSED':
-        return '모집완료'
-      case 'ENDED':
-        return '종료'
-      default:
-        return status
-    }
-  }
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'RECRUITING':
-        return 'status-recruiting'
-      case 'CLOSED':
-        return 'status-closed'
-      case 'ENDED':
-        return 'status-ended'
-      default:
-        return ''
     }
   }
 
@@ -281,17 +252,24 @@ function PostingDetailPage() {
           <Button onClick={() => navigate('/postings')} variant="secondary">
             목록으로
           </Button>
-          
-        </div>
-        <div className="posting-detail-actions-author">
+        </div> 
+        <div style={{ display: 'flex', gap: '10px' }}>
           {isAuthor && (
-            <Button 
-              onClick={() => setShowDeleteModal(true)} 
-              variant="primary"
-              style={{ backgroundColor: '#ef4444' }}
-            >
-              삭제
-            </Button>
+            <>
+              <Button 
+                onClick={() => navigate(`/postings/${id}/edit`)} 
+                variant="primary"
+              >
+                수정
+              </Button>
+              <Button 
+                onClick={() => setShowDeleteModal(true)} 
+                variant="primary"
+                style={{ backgroundColor: '#ef4444' }}
+              >
+                삭제
+              </Button>
+            </>
           )}
         </div>
       </div>

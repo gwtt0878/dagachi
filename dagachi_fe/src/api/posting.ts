@@ -8,6 +8,14 @@ export interface CreatePostingRequest {
   type: 'PROJECT' | 'STUDY'
 }
 
+export interface UpdatePostingRequest {
+  title: string
+  description: string
+  maxCapacity: number
+  type: 'PROJECT' | 'STUDY'
+  status: 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'
+}
+
 // 모든 포스팅 목록 조회
 export const getAllPostings = async (): Promise<Posting[]> => {
   const response = await api.get<Posting[]>('/api/postings')
@@ -23,6 +31,12 @@ export const getPostingById = async (id: number): Promise<Posting> => {
 // 포스팅 작성
 export const createPosting = async (data: CreatePostingRequest): Promise<Posting> => {
   const response = await api.post<Posting>('/api/postings', data)
+  return response.data
+}
+
+// 포스팅 수정
+export const updatePosting = async (id: number, data: UpdatePostingRequest): Promise<Posting> => {
+  const response = await api.put<Posting>(`/api/postings/${id}`, data)
   return response.data
 }
 

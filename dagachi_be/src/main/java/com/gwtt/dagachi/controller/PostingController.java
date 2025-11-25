@@ -1,9 +1,10 @@
 package com.gwtt.dagachi.controller;
 
 import com.gwtt.dagachi.Adapter.CustomUserDetails;
-import com.gwtt.dagachi.dto.PostingRequestDto;
+import com.gwtt.dagachi.dto.PostingCreateRequestDto;
 import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
+import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import com.gwtt.dagachi.service.PostingService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequestMapping("/api/postings")
@@ -42,10 +45,24 @@ public class PostingController {
   @PostMapping
   public ResponseEntity<PostingResponseDto> createPosting(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestBody @Valid PostingRequestDto postingRequestDto) {
+      @RequestBody @Valid PostingCreateRequestDto postingRequestDto) {
     Long currentUserId = userDetails.getUserId();
     try {
       return ResponseEntity.ok(postingService.createPosting(currentUserId, postingRequestDto));
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().body(null);
+    }
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<PostingResponseDto> updatePosting(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable @NotNull Long id,
+      @RequestBody @Valid PostingUpdateRequestDto postingUpdateRequestDto) {
+    Long currentUserId = userDetails.getUserId();
+    try {
+      PostingResponseDto updatedPosting = postingService.updatePosting(id, currentUserId, postingUpdateRequestDto);
+      return ResponseEntity.ok(updatedPosting);
     } catch (RuntimeException e) {
       return ResponseEntity.badRequest().body(null);
     }

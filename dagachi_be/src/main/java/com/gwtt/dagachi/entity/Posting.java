@@ -17,6 +17,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 
 @Entity
 @Table(name = "postings")
@@ -55,5 +56,13 @@ public class Posting extends BaseTimeEntity {
     this.type = type;
     this.maxCapacity = maxCapacity;
     this.status = PostingStatus.RECRUITING;
+  }
+
+  public void update(PostingUpdateRequestDto updateRequestDto) {
+    this.title = updateRequestDto.getTitle();
+    this.description = updateRequestDto.getDescription();
+    this.type = updateRequestDto.getType();
+    this.maxCapacity = updateRequestDto.getMaxCapacity();
+    this.status = updateRequestDto.getStatus();
   }
 }
