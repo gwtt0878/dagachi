@@ -4,8 +4,9 @@ import Button from '../components/Button'
 import Modal from '../components/Modal'
 import '../styles/common.css'
 import type { Posting } from '../types'
-import api from '../api/auth'
+import { getAllPostings } from '../api/posting'
 import { AxiosError } from 'axios'
+import { getTypeLabel, getStatusLabel } from '../constants'
 
 
 
@@ -21,8 +22,8 @@ function PostingsPage() {
     setError(null)
     
     try {
-      const response = await api.get<Posting[]>('/api/postings')
-      setPostings(response.data)
+      const data = await getAllPostings()
+      setPostings(data)
     } catch (err) {
       if (err instanceof AxiosError && err.status === 403) {
         navigate('/login')
@@ -87,6 +88,12 @@ function PostingsPage() {
 
       <h1>프로젝트 & 스터디 목록</h1>
 
+      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+        <Button onClick={() => navigate('/postings/create')} variant="primary">
+          ✏️ 게시글 작성
+        </Button>
+      </div>
+
       {loading && <p>불러오는 중...</p>}
       
       {error && <p className="error-message">{error}</p>}
@@ -98,14 +105,25 @@ function PostingsPage() {
       {!loading && postings.length > 0 && (
         <div className="postings-list">
           {postings.map((posting) => (
-            <div key={posting.id} className="card">
+            <div 
+              key={posting.id} 
+              className="card"
+              onClick={() => navigate(`/postings/${posting.id}`)}
+            >
               <div className="posting-header">
                 <h2 className="posting-title">{posting.title}</h2>
                 <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
-                  {posting.type}
+                  {getTypeLabel(posting.type)}
                 </span>
               </div>
-              <p className="posting-description">{posting.description}</p>
+              <div className="posting-status">
+                <span className={`badge ${posting.status === 'RECRUITING' ? 'badge-recruiting' : 'badge-closed'}`}>
+                  {getStatusLabel(posting.status)}
+                </span>
+              </div>
+              <div className="meta-item">
+                <span className="posting-author">모집자: {posting.authorNickname}</span>
+              </div>
               <p className="posting-created-at">
                 {new Date(posting.createdAt).toLocaleDateString('ko-KR', {
                   year: 'numeric',

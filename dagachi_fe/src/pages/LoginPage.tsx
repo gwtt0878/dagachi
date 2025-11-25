@@ -1,20 +1,30 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { login } from '../api/auth'
 import { AxiosError } from 'axios'
 import FormContainer from '../components/FormContainer'
 import Input from '../components/Input'
 import Button from '../components/Button'
+import { useToast } from '../hooks/useToast'
 import '../styles/common.css'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { showToast, ToastContainer } = useToast()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // URL에서 expired 파라미터 체크
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      showToast('세션이 만료되었습니다. 다시 로그인해주세요.', 'error')
+    }
+  }, [searchParams, showToast])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -31,8 +41,10 @@ function LoginPage() {
     try {
       const token = await login(formData)
       localStorage.setItem('token', token)
-      alert('로그인 성공!')
-      navigate('/postings')
+      showToast('로그인 성공! 환영합니다 🎉', 'success')
+      setTimeout(() => {
+        navigate('/postings')
+      }, 1000)
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         setError(err.response?.data?.message || '로그인에 실패했습니다.')
@@ -45,8 +57,10 @@ function LoginPage() {
   }
 
   return (
-    <FormContainer title="로그인">
-      <form onSubmit={handleSubmit}>
+    <>
+      <ToastContainer />
+      <FormContainer title="로그인">
+        <form onSubmit={handleSubmit}>
         <Input
           type="text"
           name="username"
@@ -72,12 +86,13 @@ function LoginPage() {
         </Button>
       </form>
 
-      <div className="link-group">
-        <Link to="/signup">회원가입</Link>
-        {' | '}
-        <Link to="/">홈으로</Link>
-      </div>
-    </FormContainer>
+        <div className="link-group">
+          <Link to="/signup">회원가입</Link>
+          {' | '}
+          <Link to="/">홈으로</Link>
+        </div>
+      </FormContainer>
+    </>
   )
 }
 

@@ -12,12 +12,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Builder
-public class PostingResponseDto {
+@AllArgsConstructor
+public class PostingSimpleResponseDto {
   private Long id;
   private String title;
-  private String description;
   private PostingType type;
   private PostingStatus status;
   private int maxCapacity;
@@ -26,11 +25,10 @@ public class PostingResponseDto {
   private Long authorId;
   private String authorNickname;
 
-  public static PostingResponseDto of(Posting posting) {
-    return PostingResponseDto.builder()
+  public static PostingSimpleResponseDto of(Posting posting) {
+    return PostingSimpleResponseDto.builder()
         .id(posting.getId())
         .title(posting.getTitle())
-        .description(posting.getDescription())
         .type(posting.getType())
         .status(posting.getStatus())
         .maxCapacity(posting.getMaxCapacity())
