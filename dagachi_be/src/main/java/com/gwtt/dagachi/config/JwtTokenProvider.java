@@ -1,5 +1,6 @@
 package com.gwtt.dagachi.config;
 
+import com.gwtt.dagachi.Adapter.CustomUserDetails;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -36,11 +37,19 @@ public class JwtTokenProvider {
   }
 
   public String generateToken(Authentication authentication) {
-    String username = authentication.getName();
+    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    String nickname = userDetails.getNickname();
+    String username = userDetails.getUsername();
     Date now = new Date();
     Date expiration = new Date(now.getTime() + expirationTime);
 
-    return Jwts.builder().id(username).issuedAt(now).expiration(expiration).signWith(key).compact();
+    return Jwts.builder()
+        .id(username)
+        .issuedAt(now)
+        .claim("nickname", nickname)
+        .expiration(expiration)
+        .signWith(key)
+        .compact();
   }
 
   public Authentication getAuthentication(String token) {

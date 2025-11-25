@@ -5,10 +5,12 @@ import { AxiosError } from 'axios'
 import FormContainer from '../components/FormContainer'
 import Input from '../components/Input'
 import Button from '../components/Button'
+import { useToast } from '../hooks/useToast'
 import '../styles/common.css'
 
 function SignupPage() {
   const navigate = useNavigate()
+  const { showToast, ToastContainer } = useToast()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -49,8 +51,10 @@ function SignupPage() {
         password: formData.password,
         nickname: formData.nickname,
       })
-      alert('회원가입 성공! 로그인해주세요.')
-      navigate('/login')
+      showToast('회원가입 성공! 로그인해주세요 🎉', 'success')
+      setTimeout(() => {
+        navigate('/login')
+      }, 1000)
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         setError(err.response?.data?.message || '회원가입에 실패했습니다.')
@@ -63,8 +67,10 @@ function SignupPage() {
   }
 
   return (
-    <FormContainer title="회원가입">
-      <form onSubmit={handleSubmit}>
+    <>
+      <ToastContainer />
+      <FormContainer title="회원가입">
+        <form onSubmit={handleSubmit}>
         <Input
           type="text"
           name="username"
@@ -114,12 +120,13 @@ function SignupPage() {
         </Button>
       </form>
 
-      <div className="link-group">
-        <Link to="/login">로그인</Link>
-        {' | '}
-        <Link to="/">홈으로</Link>
-      </div>
-    </FormContainer>
+        <div className="link-group">
+          <Link to="/login">로그인</Link>
+          {' | '}
+          <Link to="/">홈으로</Link>
+        </div>
+      </FormContainer>
+    </>
   )
 }
 
