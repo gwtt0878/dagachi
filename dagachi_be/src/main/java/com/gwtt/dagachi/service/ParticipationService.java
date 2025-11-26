@@ -18,6 +18,20 @@ public class ParticipationService {
   private final UserRepository userRepository;
   private final ParticipationRepository participationRepository;
 
+  @Transactional(readOnly = true)
+  public boolean isParticipating(Long userId, Long postingId) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    Posting posting =
+        postingRepository
+            .findById(postingId)
+            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+
+    return participationRepository.existsByParticipantAndPosting(user, posting);
+  }
+
   @Transactional
   public void joinPosting(Long userId, Long postingId) {
     User user =
@@ -49,5 +63,49 @@ public class ParticipationService {
         Participation.builder().posting(posting).participant(user).build();
 
     participationRepository.save(participation);
+  }
+
+  @Transactional
+  public void leavePosting(Long userId, Long postingId) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    Posting posting =
+        postingRepository
+            .findById(postingId)
+            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+
+    Participation participation =
+        participationRepository
+            .findByParticipantAndPosting(user, posting)
+            .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
+    participationRepository.delete(participation);
+  }
+
+  @Transactional
+  public void removeUserFromPosting(Long authorId, Long postingId, Long userIdToRemove) {
+    User author =
+        userRepository
+            .findById(authorId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    User userToRemove =
+        userRepository
+            .findById(userIdToRemove)
+            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    Posting posting =
+        postingRepository
+            .findById(postingId)
+            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+
+    if (!author.getId().equals(posting.getAuthor().getId())) {
+      throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
+    }
+
+    Participation participation =
+        participationRepository
+            .findByParticipantAndPosting(userToRemove, posting)
+            .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
+    participationRepository.delete(participation);
   }
 }
