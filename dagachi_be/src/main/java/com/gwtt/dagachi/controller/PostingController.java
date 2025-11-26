@@ -61,7 +61,8 @@ public class PostingController {
       @RequestBody @Valid PostingUpdateRequestDto postingUpdateRequestDto) {
     Long currentUserId = userDetails.getUserId();
     try {
-      PostingResponseDto updatedPosting = postingService.updatePosting(id, currentUserId, postingUpdateRequestDto);
+      PostingResponseDto updatedPosting =
+          postingService.updatePosting(id, currentUserId, postingUpdateRequestDto);
       return ResponseEntity.ok(updatedPosting);
     } catch (RuntimeException e) {
       return ResponseEntity.badRequest().body(null);

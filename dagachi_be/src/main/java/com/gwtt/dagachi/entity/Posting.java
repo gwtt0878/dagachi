@@ -2,6 +2,7 @@ package com.gwtt.dagachi.entity;
 
 import com.gwtt.dagachi.constants.PostingStatus;
 import com.gwtt.dagachi.constants.PostingType;
+import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,7 +13,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,6 +48,9 @@ public class Posting extends BaseTimeEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "author_id", nullable = false)
   private User author;
+
+  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<Participation> participations = new ArrayList<>();
 
   @Column(nullable = false)
   private int maxCapacity;

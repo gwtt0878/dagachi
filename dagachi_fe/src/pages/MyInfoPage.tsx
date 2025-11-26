@@ -1,0 +1,187 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { getCurrentUser } from '../api/user'
+import { useToast } from '../hooks/useToast'
+import type { User } from '../types'
+import Button from '../components/Button'
+import NavBar from '../components/NavBar'
+import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
+import '../styles/common.css'
+import { AxiosError } from 'axios'
+
+function MyInfoPage() {
+  const navigate = useNavigate()
+  const { showToast, ToastContainer } = useToast()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        navigate('/login')
+        return
+      }
+
+      try {
+        const data = await getCurrentUser()
+        setUser(data)
+      } catch (err: unknown) {
+        if (err instanceof AxiosError) {
+          if (err.response?.status === 403 || err.response?.status === 401) {
+            showToast('로그인이 필요합니다.', 'error')
+            navigate('/login')
+            return
+          }
+          if (err.response?.status === 404) {
+            setError('존재하지 않는 사용자입니다.')
+            return
+          }
+        }
+        setError('사용자 정보를 불러오는데 실패했습니다.')
+        console.error('사용자 조회 오류:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  if (loading) {
+    return (
+      <>
+        <NavBar />
+        <div className="page-container">
+          <p>불러오는 중...</p>
+        </div>
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <>
+        <NavBar />
+        <div className="page-container">
+          <p className="error-message">{error}</p>
+          <Button onClick={() => navigate('/')} variant="primary">
+            홈으로 돌아가기
+          </Button>
+        </div>
+      </>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  return (
+    <>
+      <NavBar />
+      <ToastContainer />
+      <div className="page-container">
+        <div className="user-profile">
+          <div className="user-profile-header">
+            <div className="user-avatar">
+              <span style={{ fontSize: '3rem' }}>👤</span>
+            </div>
+            <div className="user-info">
+              <h1 className="user-nickname">{user.nickname}</h1>
+              <p className="user-username">@{user.username}</p>
+              <span className="user-role-badge">
+                {user.role === 'ADMIN' ? '관리자' : '사용자'}
+              </span>
+            </div>
+          </div>
+
+          {/* 작성한 게시글 */}
+          <div className="user-section">
+            <h2 className="section-title">
+              📝 작성한 게시글 ({user.authoredPostings.length})
+            </h2>
+            {user.authoredPostings.length === 0 ? (
+              <p className="empty-message">작성한 게시글이 없습니다.</p>
+            ) : (
+              <div className="postings-grid">
+                {user.authoredPostings.map((posting) => (
+                  <Link
+                    key={posting.id}
+                    to={`/postings/${posting.id}`}
+                    className="posting-card"
+                  >
+                    <div className="posting-card-header">
+                      <h3 className="posting-card-title">{posting.title}</h3>
+                      <div className="posting-card-badges">
+                        <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
+                          {getTypeLabel(posting.type)}
+                        </span>
+                        <span className={`badge ${getStatusClass(posting.status)}`}>
+                          {getStatusLabel(posting.status)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="posting-card-meta">
+                      <span>👥 최대 {posting.maxCapacity}명</span>
+                      <span>
+                        {new Date(posting.createdAt).toLocaleDateString('ko-KR')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 참가한 게시글 */}
+          <div className="user-section">
+            <h2 className="section-title">
+              🙋‍♂️ 참가한 게시글 ({user.joinedPostings.length})
+            </h2>
+            {user.joinedPostings.length === 0 ? (
+              <p className="empty-message">참가한 게시글이 없습니다.</p>
+            ) : (
+              <div className="postings-grid">
+                {user.joinedPostings.map((posting) => (
+                  <Link
+                    key={posting.id}
+                    to={`/postings/${posting.id}`}
+                    className="posting-card"
+                  >
+                    <div className="posting-card-header">
+                      <h3 className="posting-card-title">{posting.title}</h3>
+                      <div className="posting-card-badges">
+                        <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
+                          {getTypeLabel(posting.type)}
+                        </span>
+                        <span className={`badge ${getStatusClass(posting.status)}`}>
+                          {getStatusLabel(posting.status)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="posting-card-meta">
+                      <span>✍️ {posting.authorNickname}</span>
+                      <span>
+                        {new Date(posting.createdAt).toLocaleDateString('ko-KR')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+            
+          <div style={{ marginTop: '40px', textAlign: 'center' }}>
+            <Button onClick={() => navigate('/postings/create')} variant="primary">
+              새 게시글 작성하기
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default MyInfoPage

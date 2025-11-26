@@ -45,3 +45,19 @@ export const deletePosting = async (id: number): Promise<void> => {
   await api.delete(`/api/postings/${id}`)
 }
 
+// 포스팅 참가 여부 확인
+export const checkParticipation = async (postingId: number): Promise<boolean> => {
+  const response = await api.get<boolean>(`/api/participation/${postingId}/check`)
+  return response.data
+}
+
+// 포스팅 참가
+export const joinPosting = async (postingId: number): Promise<void> => {
+  await api.post(`/api/participation/${postingId}`)
+}
+
+// 포스팅 참가 취소
+export const leavePosting = async (postingId: number): Promise<void> => {
+  await api.delete(`/api/participation/${postingId}`)
+}
+

@@ -6,6 +6,8 @@ import PostingCreatePage from './pages/PostingCreatePage'
 import PostingEditPage from './pages/PostingEditPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import UserPage from './pages/UserPage'
+import MyInfoPage from './pages/MyInfoPage'
 import './App.css'
 
 function App() {
@@ -19,6 +21,8 @@ function App() {
         <Route path="/postings/:id" element={<PostingDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/users/me" element={<MyInfoPage />} />
+        <Route path="/users/:id" element={<UserPage />} />
       </Routes>
     </Router>
   )

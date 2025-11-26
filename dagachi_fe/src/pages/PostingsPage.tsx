@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Modal from '../components/Modal'
+import NavBar from '../components/NavBar'
 import '../styles/common.css'
 import type { Posting } from '../types'
 import { getAllPostings } from '../api/posting'
 import { AxiosError } from 'axios'
 import { getTypeLabel, getStatusLabel } from '../constants'
-
-
 
 function PostingsPage() {
   const navigate = useNavigate()
@@ -49,7 +48,9 @@ function PostingsPage() {
   }, [fetchPostings])
 
   return (
-    <div className="page-container">
+    <>
+      <NavBar />
+      <div className="page-container">
       {/* 로그인 필요 모달 */}
       <Modal
         isOpen={showLoginModal}
@@ -144,6 +145,7 @@ function PostingsPage() {
         </Button>
       </div>
     </div>
+    </>
   )
 }
 

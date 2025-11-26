@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Modal from '../components/Modal'
-import { getPostingById, deletePosting } from '../api/posting'
+import NavBar from '../components/NavBar'
+import { getPostingById, deletePosting, joinPosting, leavePosting, checkParticipation } from '../api/posting'
 import { useToast } from '../hooks/useToast'
 import type { Posting } from '../types'
 import '../styles/common.css'
@@ -21,6 +22,9 @@ function PostingDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isAuthor, setIsAuthor] = useState(false)
+  const [joining, setJoining] = useState(false)
+  const [isParticipating, setIsParticipating] = useState(false)
+  const [checkingParticipation, setCheckingParticipation] = useState(false)
 
   const fetchPosting = useCallback(async () => {
     const token = localStorage.getItem('token')
@@ -42,6 +46,17 @@ function PostingDetailPage() {
       const nickname = getCurrentNickname()
       if (nickname && data && nickname === data.authorNickname) {
         setIsAuthor(true)
+      } else {
+        // 작성자가 아니면 참가 여부 확인
+        try {
+          setCheckingParticipation(true)
+          const participating = await checkParticipation(Number(id))
+          setIsParticipating(participating)
+        } catch (checkErr) {
+          console.error('참가 여부 확인 오류:', checkErr)
+        } finally {
+          setCheckingParticipation(false)
+        }
       }
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -97,22 +112,92 @@ function PostingDetailPage() {
     }
   }
 
+  const handleJoin = async () => {
+    if (!id) return
+
+    setJoining(true)
+    try {
+      await joinPosting(Number(id))
+      showToast('참가 신청이 완료되었습니다! 🎉', 'success')
+      setIsParticipating(true)
+      // 게시글 정보 새로고침 (참가자 수 업데이트 등을 위해)
+      await fetchPosting()
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 400) {
+          showToast('이미 참가 중이거나 인원이 가득 찼습니다.', 'error')
+          return
+        }
+        if (err.response?.status === 403) {
+          showToast('참가 권한이 없습니다.', 'error')
+          return
+        }
+        if (err.response?.status === 404) {
+          showToast('게시글을 찾을 수 없습니다.', 'error')
+          return
+        }
+        showToast('참가 신청에 실패했습니다.', 'error')
+        console.error('참가 오류:', err)
+      }
+    } finally {
+      setJoining(false)
+    }
+  }
+
+  const handleLeave = async () => {
+    if (!id) return
+
+    setJoining(true)
+    try {
+      await leavePosting(Number(id))
+      showToast('참가가 취소되었습니다.', 'success')
+      setIsParticipating(false)
+      // 게시글 정보 새로고침
+      await fetchPosting()
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 400) {
+          showToast('참가하지 않은 게시글입니다.', 'error')
+          return
+        }
+        if (err.response?.status === 403) {
+          showToast('참가 취소 권한이 없습니다.', 'error')
+          return
+        }
+        if (err.response?.status === 404) {
+          showToast('게시글을 찾을 수 없습니다.', 'error')
+          return
+        }
+        showToast('참가 취소에 실패했습니다.', 'error')
+        console.error('참가 취소 오류:', err)
+      }
+    } finally {
+      setJoining(false)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="page-container">
-        <p>불러오는 중...</p>
-      </div>
+      <>
+        <NavBar />
+        <div className="page-container">
+          <p>불러오는 중...</p>
+        </div>
+      </>
     )
   }
 
   if (error) {
     return (
-      <div className="page-container">
-        <p className="error-message">{error}</p>
-        <Button onClick={() => navigate('/postings')} variant="primary">
-          목록으로 돌아가기
-        </Button>
-      </div>
+      <>
+        <NavBar />
+        <div className="page-container">
+          <p className="error-message">{error}</p>
+          <Button onClick={() => navigate('/postings')} variant="primary">
+            목록으로 돌아가기
+          </Button>
+        </div>
+      </>
     )
   }
 
@@ -122,6 +207,7 @@ function PostingDetailPage() {
 
   return (
     <>
+      <NavBar />
       <ToastContainer />
       <div className="page-container">
         <Modal
@@ -254,6 +340,35 @@ function PostingDetailPage() {
           </Button>
         </div> 
         <div style={{ display: 'flex', gap: '10px' }}>
+          {!isAuthor && (
+            <>
+              {isParticipating ? (
+                <Button 
+                  onClick={handleLeave} 
+                  variant="primary"
+                  disabled={joining || checkingParticipation}
+                  style={{ 
+                    backgroundColor: '#ef4444',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {joining ? '취소 중...' : '❌ 참가 취소'}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleJoin} 
+                  variant="primary"
+                  disabled={joining || posting.status !== 'RECRUITING' || checkingParticipation}
+                  style={{ 
+                    backgroundColor: posting.status === 'RECRUITING' ? '#10b981' : '#6b7280',
+                    cursor: posting.status === 'RECRUITING' ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  {checkingParticipation ? '확인 중...' : joining ? '참가 신청 중...' : posting.status === 'RECRUITING' ? '🙋‍♂️ 참가하기' : '모집 마감'}
+                </Button>
+              )}
+            </>
+          )}
           {isAuthor && (
             <>
               <Button 
