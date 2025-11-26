@@ -4,6 +4,7 @@ import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.PostingCreateRequestDto;
 import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
+import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
 import com.gwtt.dagachi.repository.PostingRepository;
@@ -12,7 +13,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +33,8 @@ public class PostingService {
   }
 
   @Transactional
-  public PostingResponseDto createPosting(Long authorId, PostingCreateRequestDto postingRequestDto) {
+  public PostingResponseDto createPosting(
+      Long authorId, PostingCreateRequestDto postingRequestDto) {
     User user =
         userRepository
             .findById(authorId)
@@ -54,7 +55,8 @@ public class PostingService {
   }
 
   @Transactional
-  public PostingResponseDto updatePosting(Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
+  public PostingResponseDto updatePosting(
+      Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
     Posting posting =
         postingRepository
             .findById(id)
@@ -80,6 +82,7 @@ public class PostingService {
         userRepository
             .findById(currentUserId)
             .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+
     if (currentUser.getRole().equals(Role.ADMIN)) {
       return;
     }

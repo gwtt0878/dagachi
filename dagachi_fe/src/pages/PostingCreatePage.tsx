@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Modal from '../components/Modal'
+import NavBar from '../components/NavBar'
 import { createPosting, type CreatePostingRequest } from '../api/posting'
 import { useToast } from '../hooks/useToast'
 import '../styles/common.css'
@@ -96,6 +97,7 @@ function PostingCreatePage() {
 
   return (
     <>
+      <NavBar />
       <ToastContainer />
       <div className="page-container">
         {/* 로그인 필요 모달 */}

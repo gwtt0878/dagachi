@@ -45,3 +45,8 @@ export const deletePosting = async (id: number): Promise<void> => {
   await api.delete(`/api/postings/${id}`)
 }
 
+// 포스팅 참가
+export const joinPosting = async (postingId: number): Promise<void> => {
+  await api.post(`/api/participation/${postingId}`)
+}
+

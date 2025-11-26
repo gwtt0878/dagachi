@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Modal from '../components/Modal'
+import NavBar from '../components/NavBar'
 import { getPostingById, updatePosting, type UpdatePostingRequest } from '../api/posting'
 import { useToast } from '../hooks/useToast'
 import { getCurrentNickname } from '../api/auth'
@@ -159,20 +160,26 @@ function PostingEditPage() {
 
   if (loading) {
     return (
-      <div className="page-container">
-        <p>불러오는 중...</p>
-      </div>
+      <>
+        <NavBar />
+        <div className="page-container">
+          <p>불러오는 중...</p>
+        </div>
+      </>
     )
   }
 
   if (error) {
     return (
-      <div className="page-container">
-        <p className="error-message">{error}</p>
-        <Button onClick={() => navigate(`/postings/${id}`)} variant="primary">
-          돌아가기
-        </Button>
-      </div>
+      <>
+        <NavBar />
+        <div className="page-container">
+          <p className="error-message">{error}</p>
+          <Button onClick={() => navigate(`/postings/${id}`)} variant="primary">
+            돌아가기
+          </Button>
+        </div>
+      </>
     )
   }
 
@@ -182,6 +189,7 @@ function PostingEditPage() {
 
   return (
     <>
+      <NavBar />
       <ToastContainer />
       <div className="page-container">
         {/* 로그인 필요 모달 */}
