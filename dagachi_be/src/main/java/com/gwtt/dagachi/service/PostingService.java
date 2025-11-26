@@ -13,6 +13,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 
 @Service
 @RequiredArgsConstructor
