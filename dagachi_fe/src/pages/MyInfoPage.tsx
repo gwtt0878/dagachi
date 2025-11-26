@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link, useParams } from 'react-router-dom'
-import { getUserById } from '../api/user'
-import { getCurrentNickname } from '../api/auth'
+import { useNavigate, Link } from 'react-router-dom'
+import { getCurrentUser } from '../api/user'
 import { useToast } from '../hooks/useToast'
 import type { User } from '../types'
 import Button from '../components/Button'
@@ -10,13 +9,12 @@ import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
 import '../styles/common.css'
 import { AxiosError } from 'axios'
 
-function UserPage() {
+function MyInfoPage() {
   const navigate = useNavigate()
   const { showToast, ToastContainer } = useToast()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { id } = useParams<{ id: string }>()
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -26,20 +24,9 @@ function UserPage() {
         return
       }
 
-      if (!id) {
-        setError('잘못된 접근입니다.')
-        setLoading(false)
-        return
-      }
-
       try {
-        const data = await getUserById(Number(id))
+        const data = await getCurrentUser()
         setUser(data)
-        const currentNickname = getCurrentNickname()
-        if (currentNickname && data && currentNickname === data.nickname) {
-          navigate('/users/me')
-          return
-        }
       } catch (err: unknown) {
         if (err instanceof AxiosError) {
           if (err.response?.status === 403 || err.response?.status === 401) {
@@ -103,6 +90,10 @@ function UserPage() {
             </div>
             <div className="user-info">
               <h1 className="user-nickname">{user.nickname}</h1>
+              <p className="user-username">@{user.username}</p>
+              <span className="user-role-badge">
+                {user.role === 'ADMIN' ? '관리자' : '사용자'}
+              </span>
             </div>
           </div>
 
@@ -181,11 +172,16 @@ function UserPage() {
               </div>
             )}
           </div>
+            
+          <div style={{ marginTop: '40px', textAlign: 'center' }}>
+            <Button onClick={() => navigate('/postings/create')} variant="primary">
+              새 게시글 작성하기
+            </Button>
+          </div>
         </div>
       </div>
     </>
   )
 }
 
-export default UserPage
-
+export default MyInfoPage
