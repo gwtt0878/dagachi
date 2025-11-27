@@ -1,6 +1,10 @@
 package com.gwtt.dagachi.entity;
 
+import com.gwtt.dagachi.constants.ParticipationStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -37,6 +41,10 @@ public class Participation extends BaseTimeEntity {
 
   private LocalDateTime deletedAt;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private ParticipationStatus status;
+
   public boolean isActive() {
     return deletedAt == null;
   }
@@ -45,5 +53,10 @@ public class Participation extends BaseTimeEntity {
   public Participation(Posting posting, User participant) {
     this.posting = posting;
     this.participant = participant;
+    this.status = ParticipationStatus.PENDING;
+  }
+
+  public void setStatus(ParticipationStatus status) {
+    this.status = status;
   }
 }

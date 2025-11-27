@@ -29,3 +29,13 @@ export interface User {
   authoredPostings: PostingSimple[]
   joinedPostings: PostingSimple[]
 }
+
+export interface Participation {
+  participationId: number
+  postingId: number
+  participantId: number
+  participantNickname: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  createdAt: string
+  updatedAt: string
+}

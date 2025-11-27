@@ -1,5 +1,5 @@
 import api from './auth'
-import type { Posting } from '../types'
+import type { Posting, Participation } from '../types'
 
 export interface CreatePostingRequest {
   title: string
@@ -59,5 +59,21 @@ export const joinPosting = async (postingId: number): Promise<void> => {
 // 포스팅 참가 취소
 export const leavePosting = async (postingId: number): Promise<void> => {
   await api.delete(`/api/participation/${postingId}`)
+}
+
+// 참가자 목록 조회
+export const getParticipations = async (postingId: number): Promise<Participation[]> => {
+  const response = await api.get<Participation[]>(`/api/participation/${postingId}`)
+  return response.data
+}
+
+// 참가자 승인
+export const approveParticipation = async (postingId: number, participationId: number): Promise<void> => {
+  await api.post(`/api/participation/${postingId}/approve/${participationId}`)
+}
+
+// 참가자 거절
+export const rejectParticipation = async (postingId: number, participationId: number): Promise<void> => {
+  await api.delete(`/api/participation/${postingId}/user/${participationId}`)
 }
 

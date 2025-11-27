@@ -4,6 +4,7 @@ import PostingsPage from './pages/PostingsPage'
 import PostingDetailPage from './pages/PostingDetailPage'
 import PostingCreatePage from './pages/PostingCreatePage'
 import PostingEditPage from './pages/PostingEditPage'
+import ParticipationManagePage from './pages/ParticipationManagePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import UserPage from './pages/UserPage'
@@ -18,6 +19,7 @@ function App() {
         <Route path="/postings" element={<PostingsPage />} />
         <Route path="/postings/create" element={<PostingCreatePage />} />
         <Route path="/postings/:id/edit" element={<PostingEditPage />} />
+        <Route path="/postings/:id/participants" element={<ParticipationManagePage />} />
         <Route path="/postings/:id" element={<PostingDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
