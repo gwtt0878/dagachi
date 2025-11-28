@@ -15,17 +15,22 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "postings")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE postings SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Posting extends BaseTimeEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,8 +53,10 @@ public class Posting extends BaseTimeEntity {
   @JoinColumn(name = "author_id", nullable = false)
   private User author;
 
-  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = false)
   private List<Participation> participations = new ArrayList<>();
+
+  private LocalDateTime deletedAt;
 
   @Column(nullable = false)
   private int maxCapacity;

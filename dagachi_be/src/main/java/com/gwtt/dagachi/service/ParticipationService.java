@@ -80,10 +80,6 @@ public class ParticipationService {
             .findByIdForUpdate(postingId)
             .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
 
-    if (posting.getParticipations().size() >= posting.getMaxCapacity()) {
-      throw new RuntimeException("해당 게시글의 최대 참여 인원을 초과했습니다.");
-    }
-
     if (posting.getAuthor().getId().equals(userId)) {
       throw new RuntimeException("본인이 참여할 수 없습니다.");
     }
@@ -114,7 +110,7 @@ public class ParticipationService {
             .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
     Participation participation =
         participationRepository
-            .findByParticipantAndPosting(user, posting)
+            .findByParticipantAndPostingForUpdate(user, posting)
             .orElseThrow(() -> new RuntimeException("참가 정보를 찾을 수 없습니다."));
 
     if (participation.getStatus().equals(ParticipationStatus.APPROVED)) {

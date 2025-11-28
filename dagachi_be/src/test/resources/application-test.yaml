@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+    show-sql: true
+  sql:
+    init:
+      mode: never
+
+jwt:
+  secret-key: testSecretKeyForTestingPurposesOnlyMinimum256Bits123456789123456789123456789123456789123456789
+  expiration-time: 3600000
+
+cors:
+  allowed-origins: "*"
+
