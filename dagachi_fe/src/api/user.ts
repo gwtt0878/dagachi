@@ -1,5 +1,5 @@
 import api from './auth'
-import type { User } from '../types'
+import type { User, PageResponse, PostingSimple } from '../types'
 
 // 특정 유저 조회
 export const getUserById = async (id: number): Promise<User> => {
@@ -9,5 +9,17 @@ export const getUserById = async (id: number): Promise<User> => {
 
 export const getCurrentUser = async (): Promise<User> => {
   const response = await api.get<User>(`/api/users/me`)
+  return response.data
+}
+
+// 사용자가 작성한 게시글 조회 (페이징)
+export const getAuthoredPostings = async (userId: number, page: number = 0): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/authored?page=${page}`)
+  return response.data
+}
+
+// 사용자가 참가한 게시글 조회 (페이징)
+export const getJoinedPostings = async (userId: number, page: number = 0): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/joined?page=${page}`)
   return response.data
 }

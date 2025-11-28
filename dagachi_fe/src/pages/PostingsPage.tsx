@@ -15,14 +15,18 @@ function PostingsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
-  const fetchPostings = useCallback(async () => {
+  const fetchPostings = useCallback(async (page: number = 0) => {
     setLoading(true)
     setError(null)
     
     try {
-      const data = await getAllPostings()
-      setPostings(data)
+      const data = await getAllPostings(page)
+      setPostings(data.content)
+      setTotalPages(data.totalPages)
+      setCurrentPage(data.number)
     } catch (err) {
       if (err instanceof AxiosError && err.status === 403) {
         navigate('/login')
@@ -44,8 +48,12 @@ function PostingsPage() {
       return
     }
     
-    fetchPostings()
-  }, [fetchPostings])
+    fetchPostings(currentPage)
+  }, [fetchPostings, currentPage])
+  
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+  }
 
   return (
     <>
@@ -139,8 +147,56 @@ function PostingsPage() {
         </div>
       )}
 
+      {/* 페이지네이션 */}
+      {!loading && totalPages > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          gap: '10px', 
+          marginTop: '30px',
+          marginBottom: '20px'
+        }}>
+          <Button
+            onClick={() => handlePageChange(0)}
+            disabled={currentPage === 0}
+            variant="secondary"
+          >
+            처음
+          </Button>
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+            variant="secondary"
+          >
+            이전
+          </Button>
+          <span style={{ 
+            padding: '0 15px', 
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}>
+            {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages - 1}
+            variant="secondary"
+          >
+            다음
+          </Button>
+          <Button
+            onClick={() => handlePageChange(totalPages - 1)}
+            disabled={currentPage >= totalPages - 1}
+            variant="secondary"
+          >
+            마지막
+          </Button>
+        </div>
+      )}
+
       <div className="refresh-button">
-        <Button onClick={fetchPostings} variant="primary">
+        <Button onClick={() => fetchPostings(currentPage)} variant="primary">
           새로고침
         </Button>
       </div>

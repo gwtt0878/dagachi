@@ -8,8 +8,11 @@ import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import com.gwtt.dagachi.service.PostingService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,8 +31,10 @@ public class PostingController {
   private final PostingService postingService;
 
   @GetMapping
-  public ResponseEntity<List<PostingSimpleResponseDto>> getPostings() {
-    return ResponseEntity.ok(postingService.getAllPostings());
+  public ResponseEntity<Page<PostingSimpleResponseDto>> getPostings(
+      @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    return ResponseEntity.ok(postingService.getPostings(pageable));
   }
 
   @GetMapping("/{id}")

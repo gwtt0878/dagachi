@@ -11,6 +11,8 @@ import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,11 @@ public class PostingService {
 
   public List<PostingSimpleResponseDto> getAllPostings() {
     return postingRepository.findAll().stream().map(PostingSimpleResponseDto::of).toList();
+  }
+
+  public Page<PostingSimpleResponseDto> getPostings(Pageable pageable) {
+    Page<Posting> postings = postingRepository.findAll(pageable);
+    return postings.map(PostingSimpleResponseDto::of);
   }
 
   public PostingResponseDto getPostingById(Long id) {

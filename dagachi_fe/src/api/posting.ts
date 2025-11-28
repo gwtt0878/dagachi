@@ -1,5 +1,5 @@
 import api from './auth'
-import type { Posting, Participation } from '../types'
+import type { Posting, Participation, PageResponse } from '../types'
 
 export interface CreatePostingRequest {
   title: string
@@ -16,9 +16,9 @@ export interface UpdatePostingRequest {
   status: 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'
 }
 
-// 모든 포스팅 목록 조회
-export const getAllPostings = async (): Promise<Posting[]> => {
-  const response = await api.get<Posting[]>('/api/postings')
+// 모든 포스팅 목록 조회 (페이징)
+export const getAllPostings = async (page: number = 0): Promise<PageResponse<Posting>> => {
+  const response = await api.get<PageResponse<Posting>>(`/api/postings?page=${page}`)
   return response.data
 }
 
