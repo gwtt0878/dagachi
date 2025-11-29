@@ -1,6 +1,6 @@
 package com.gwtt.dagachi.controller;
 
-import com.gwtt.dagachi.Adapter.CustomUserDetails;
+import com.gwtt.dagachi.adapter.CustomUserDetails;
 import com.gwtt.dagachi.constants.PostingStatus;
 import com.gwtt.dagachi.constants.PostingType;
 import com.gwtt.dagachi.dto.PostingCreateRequestDto;

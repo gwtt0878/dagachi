@@ -1,4 +1,4 @@
-package com.gwtt.dagachi.Adapter;
+package com.gwtt.dagachi.adapter;
 
 import com.gwtt.dagachi.entity.User;
 import java.util.Collection;

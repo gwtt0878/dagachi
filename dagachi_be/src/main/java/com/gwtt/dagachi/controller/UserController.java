@@ -1,6 +1,6 @@
 package com.gwtt.dagachi.controller;
 
-import com.gwtt.dagachi.Adapter.CustomUserDetails;
+import com.gwtt.dagachi.adapter.CustomUserDetails;
 import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
 import com.gwtt.dagachi.dto.UserResponseDto;
 import com.gwtt.dagachi.service.UserService;

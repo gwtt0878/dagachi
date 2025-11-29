@@ -1,6 +1,6 @@
 package com.gwtt.dagachi.controller;
 
-import com.gwtt.dagachi.Adapter.CustomUserDetails;
+import com.gwtt.dagachi.adapter.CustomUserDetails;
 import com.gwtt.dagachi.dto.ParticipationResponseDto;
 import com.gwtt.dagachi.service.ParticipationService;
 import jakarta.validation.constraints.NotNull;
