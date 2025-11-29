@@ -20,12 +20,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import; 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import com.gwtt.dagachi.config.JpaAuditingConfig;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@Import({TestQueryDSLConfig.class, JpaAuditingConfig.class})
 @ActiveProfiles("test")
 @DisplayName("ParticipationService 동시성 테스트")
 class ParticipationConcurrencyTest {

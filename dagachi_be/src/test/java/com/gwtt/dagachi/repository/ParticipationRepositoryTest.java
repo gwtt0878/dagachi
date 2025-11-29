@@ -15,9 +15,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import com.gwtt.dagachi.config.TestQueryDSLConfig;
+import com.gwtt.dagachi.config.JpaAuditingConfig;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
+@Import({TestQueryDSLConfig.class, JpaAuditingConfig.class})
 @ActiveProfiles("test")
 @DisplayName("ParticipationRepository 테스트")
 class ParticipationRepositoryTest {

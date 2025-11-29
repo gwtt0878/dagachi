@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PostingRepository extends JpaRepository<Posting, Long> {
+public interface PostingRepository extends JpaRepository<Posting, Long>, PostingRepositoryCustom {
   List<Posting> findByAuthorId(Long authorId);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
