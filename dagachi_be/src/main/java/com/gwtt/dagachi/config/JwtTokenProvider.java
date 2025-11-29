@@ -1,5 +1,6 @@
 package com.gwtt.dagachi.config;
 
+import com.gwtt.dagachi.adapter.CustomUserDetails;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -16,8 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
-
-import com.gwtt.dagachi.adapter.CustomUserDetails;
 
 @Component
 @RequiredArgsConstructor

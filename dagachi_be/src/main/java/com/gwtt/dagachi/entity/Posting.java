@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -26,7 +27,15 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "postings")
+@Table(
+    name = "postings",
+    indexes = {
+      @Index(
+          name = "idx_postings_main_search",
+          columnList = "deleted_at, status, type, created_at DESC"),
+      @Index(name = "idx_postings_author", columnList = "author_id"),
+      @Index(name = "idx_postings_active_recent", columnList = "deleted_at, created_at DESC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE postings SET deleted_at = NOW() WHERE id = ?")
