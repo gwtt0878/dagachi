@@ -4,6 +4,7 @@ import Button from '../components/Button'
 import Modal from '../components/Modal'
 import NavBar from '../components/NavBar'
 import { getPostingById, deletePosting, joinPosting, leavePosting, checkParticipation } from '../api/posting'
+import { getCurrentUser } from '../api/user'
 import { useToast } from '../hooks/useToast'
 import type { Posting } from '../types'
 import '../styles/common.css'
@@ -22,9 +23,11 @@ function PostingDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isAuthor, setIsAuthor] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [joining, setJoining] = useState(false)
   const [isParticipating, setIsParticipating] = useState(false)
   const [checkingParticipation, setCheckingParticipation] = useState(false)
+  const [showAdminDeleteModal, setShowAdminDeleteModal] = useState(false)
 
   const fetchPosting = useCallback(async () => {
     const token = localStorage.getItem('token')
@@ -57,6 +60,16 @@ function PostingDetailPage() {
         } finally {
           setCheckingParticipation(false)
         }
+      }
+      
+      // 관리자 여부 확인
+      try {
+        const me = await getCurrentUser()
+        if (me.role === 'ADMIN') {
+          setIsAdmin(true)
+        }
+      } catch (adminErr) {
+        console.error('관리자 여부 확인 오류:', adminErr)
       }
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -269,6 +282,36 @@ function PostingDetailPage() {
           </div>
         </Modal>
 
+        {/* 관리자 삭제 확인 모달 */}
+        <Modal
+          isOpen={showAdminDeleteModal}
+          onClose={() => setShowAdminDeleteModal(false)}
+          title="🛡️ 관리자 권한으로 삭제"
+        >
+          <p style={{ marginBottom: '20px', fontSize: '16px', lineHeight: '1.6' }}>
+            <strong>관리자 권한</strong>으로 이 게시글을 삭제하시겠습니까?<br />
+            삭제된 게시글은 복구할 수 없습니다.
+          </p>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowAdminDeleteModal(false)}
+              style={{ flex: 1 }}
+              disabled={deleting}
+            >
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDelete}
+              style={{ flex: 1, backgroundColor: '#dc2626' }}
+              disabled={deleting}
+            >
+              {deleting ? '삭제 중...' : '관리자 삭제'}
+            </Button>
+          </div>
+        </Modal>
+
       <div className="link-group">
         <button onClick={() => navigate('/postings')} className="btn btn-primary">
           ← 목록으로 돌아가기
@@ -392,6 +435,16 @@ function PostingDetailPage() {
                 삭제
               </Button>
             </>
+          )}
+          {/* 관리자 삭제 버튼 - 작성자가 아닌 관리자에게만 표시 */}
+          {isAdmin && !isAuthor && (
+            <Button 
+              onClick={() => setShowAdminDeleteModal(true)} 
+              variant="primary"
+              style={{ backgroundColor: '#dc2626' }}
+            >
+              🛡️ 관리자 삭제
+            </Button>
           )}
         </div>
       </div>
