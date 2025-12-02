@@ -11,22 +11,35 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "postings")
+@Table(
+    name = "postings",
+    indexes = {
+      @Index(
+          name = "idx_postings_main_search",
+          columnList = "deleted_at, status, type, created_at DESC"),
+      @Index(name = "idx_postings_author", columnList = "author_id"),
+      @Index(name = "idx_postings_active_recent", columnList = "deleted_at, created_at DESC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE postings SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Posting extends BaseTimeEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,8 +62,10 @@ public class Posting extends BaseTimeEntity {
   @JoinColumn(name = "author_id", nullable = false)
   private User author;
 
-  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = false)
   private List<Participation> participations = new ArrayList<>();
+
+  private LocalDateTime deletedAt;
 
   @Column(nullable = false)
   private int maxCapacity;
@@ -71,5 +86,9 @@ public class Posting extends BaseTimeEntity {
     this.type = updateRequestDto.getType();
     this.maxCapacity = updateRequestDto.getMaxCapacity();
     this.status = updateRequestDto.getStatus();
+  }
+
+  public void setStatus(PostingStatus status) {
+    this.status = status;
   }
 }

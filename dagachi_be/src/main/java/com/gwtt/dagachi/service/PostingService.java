@@ -3,6 +3,7 @@ package com.gwtt.dagachi.service;
 import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.PostingCreateRequestDto;
 import com.gwtt.dagachi.dto.PostingResponseDto;
+import com.gwtt.dagachi.dto.PostingSearchCondition;
 import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
 import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import com.gwtt.dagachi.entity.Posting;
@@ -11,9 +12,10 @@ import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,11 @@ public class PostingService {
 
   public List<PostingSimpleResponseDto> getAllPostings() {
     return postingRepository.findAll().stream().map(PostingSimpleResponseDto::of).toList();
+  }
+
+  public Page<PostingSimpleResponseDto> getPostings(Pageable pageable) {
+    Page<Posting> postings = postingRepository.findAll(pageable);
+    return postings.map(PostingSimpleResponseDto::of);
   }
 
   public PostingResponseDto getPostingById(Long id) {
@@ -76,6 +83,12 @@ public class PostingService {
             .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
     checkAuthorization(posting, currentUserId);
     postingRepository.delete(posting);
+  }
+
+  public Page<PostingSimpleResponseDto> searchPostings(
+      PostingSearchCondition condition, Pageable pageable) {
+    Page<Posting> postings = postingRepository.searchPostings(condition, pageable);
+    return postings.map(PostingSimpleResponseDto::of);
   }
 
   private void checkAuthorization(Posting posting, Long currentUserId) {

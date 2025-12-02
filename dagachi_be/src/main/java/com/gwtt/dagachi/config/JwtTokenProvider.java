@@ -1,6 +1,6 @@
 package com.gwtt.dagachi.config;
 
-import com.gwtt.dagachi.Adapter.CustomUserDetails;
+import com.gwtt.dagachi.adapter.CustomUserDetails;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;

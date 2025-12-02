@@ -1,6 +1,6 @@
 package com.gwtt.dagachi.service;
 
-import com.gwtt.dagachi.Adapter.CustomUserDetails;
+import com.gwtt.dagachi.adapter.CustomUserDetails;
 import com.gwtt.dagachi.entity.User;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

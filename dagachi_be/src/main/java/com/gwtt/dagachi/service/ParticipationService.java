@@ -1,12 +1,15 @@
 package com.gwtt.dagachi.service;
 
+import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingStatus;
+import com.gwtt.dagachi.dto.ParticipationResponseDto;
 import com.gwtt.dagachi.entity.Participation;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
 import com.gwtt.dagachi.repository.ParticipationRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,40 @@ public class ParticipationService {
     return participationRepository.existsByParticipantAndPosting(user, posting);
   }
 
+  @Transactional(readOnly = true)
+  public ParticipationResponseDto getMyParticipation(Long userId, Long postingId) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    Posting posting =
+        postingRepository
+            .findById(postingId)
+            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+
+    Participation participation =
+        participationRepository
+            .findByParticipantAndPosting(user, posting)
+            .orElseThrow(() -> new RuntimeException("참가 정보를 찾을 수 없습니다."));
+
+    return ParticipationResponseDto.of(participation);
+  }
+
+  @Transactional(readOnly = true)
+  public List<ParticipationResponseDto> getParticipationsByPostingId(Long userId, Long postingId) {
+    Posting posting =
+        postingRepository
+            .findById(postingId)
+            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+
+    if (!posting.getAuthor().getId().equals(userId)) {
+      throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
+    }
+
+    List<Participation> participations = participationRepository.findByPostingId(postingId);
+    return participations.stream().map(ParticipationResponseDto::of).toList();
+  }
+
   @Transactional
   public void joinPosting(Long userId, Long postingId) {
     User user =
@@ -42,10 +79,6 @@ public class ParticipationService {
         postingRepository
             .findByIdForUpdate(postingId)
             .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
-
-    if (posting.getParticipations().size() >= posting.getMaxCapacity()) {
-      throw new RuntimeException("해당 게시글의 최대 참여 인원을 초과했습니다.");
-    }
 
     if (posting.getAuthor().getId().equals(userId)) {
       throw new RuntimeException("본인이 참여할 수 없습니다.");
@@ -75,37 +108,81 @@ public class ParticipationService {
         postingRepository
             .findById(postingId)
             .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
-
     Participation participation =
         participationRepository
-            .findByParticipantAndPosting(user, posting)
-            .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
+            .findByParticipantAndPostingForUpdate(user, posting)
+            .orElseThrow(() -> new RuntimeException("참가 정보를 찾을 수 없습니다."));
+
+    if (participation.getStatus().equals(ParticipationStatus.APPROVED)) {
+      throw new RuntimeException("해당 참여 정보는 이미 승인되었습니다.");
+    }
+    if (participation.getStatus().equals(ParticipationStatus.REJECTED)) {
+      throw new RuntimeException("해당 참여 정보는 이미 거절되었습니다.");
+    }
+
     participationRepository.delete(participation);
   }
 
   @Transactional
-  public void removeUserFromPosting(Long authorId, Long postingId, Long userIdToRemove) {
+  public void approveUser(Long authorId, Long participationId) {
     User author =
         userRepository
             .findById(authorId)
             .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-    User userToRemove =
-        userRepository
-            .findById(userIdToRemove)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-    Posting posting =
-        postingRepository
-            .findById(postingId)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+    Participation participation =
+        participationRepository
+            .findByIdForUpdate(participationId)
+            .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
 
-    if (!author.getId().equals(posting.getAuthor().getId())) {
+    Posting posting = participation.getPosting();
+
+    if (!posting.getAuthor().getId().equals(author.getId())) {
       throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
     }
 
+    if (posting.getStatus().equals(PostingStatus.COMPLETED)
+        || posting.getStatus().equals(PostingStatus.IN_PROGRESS)) {
+      throw new RuntimeException("해당 게시글의 참여가 종료되었습니다.");
+    }
+
+    if (participation.getStatus().equals(ParticipationStatus.APPROVED)) {
+      throw new RuntimeException("해당 참여 정보는 이미 승인되었습니다.");
+    }
+
+    int currentApprovedUsers =
+        participationRepository.countByPostingAndStatus(posting, ParticipationStatus.APPROVED);
+
+    if (currentApprovedUsers >= posting.getMaxCapacity()) {
+      throw new RuntimeException("해당 게시글의 최대 참여 인원을 초과했습니다.");
+    }
+
+    participation.setStatus(ParticipationStatus.APPROVED);
+    participationRepository.save(participation);
+
+    if (currentApprovedUsers == posting.getMaxCapacity()) {
+      posting.setStatus(PostingStatus.COMPLETED);
+      postingRepository.save(posting);
+    }
+  }
+
+  @Transactional
+  public void rejectUser(Long authorId, Long participationId) {
+    User author =
+        userRepository
+            .findById(authorId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
     Participation participation =
         participationRepository
-            .findByParticipantAndPosting(userToRemove, posting)
+            .findByIdForUpdate(participationId)
             .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
-    participationRepository.delete(participation);
+
+    Posting posting = participation.getPosting();
+
+    if (!posting.getAuthor().getId().equals(author.getId())) {
+      throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
+    }
+
+    participation.setStatus(ParticipationStatus.REJECTED);
+    participationRepository.save(participation);
   }
 }

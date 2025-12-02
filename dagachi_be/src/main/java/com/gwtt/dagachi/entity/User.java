@@ -8,17 +8,32 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "users")
-public class User {
+@Table(
+    name = "users",
+    indexes = {@Index(name = "idx_users_nickname", columnList = "nickname")})
+@SQLDelete(
+    sql =
+        """
+  UPDATE users
+  SET deleted_at = NOW(),
+      username = CONCAT(username, '_deleted_', id, '_', NOW()),
+      nickname = CONCAT(nickname, '_deleted_', id, '_', NOW())
+  WHERE id = ?""")
+@SQLRestriction("deleted_at IS NULL")
+public class User extends BaseTimeEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -31,6 +46,8 @@ public class User {
 
   @Column(nullable = false, length = 50, unique = true)
   private String nickname;
+
+  private LocalDateTime deletedAt;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)

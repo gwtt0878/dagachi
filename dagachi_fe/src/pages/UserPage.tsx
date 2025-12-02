@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, useParams } from 'react-router-dom'
-import { getUserById } from '../api/user'
+import { getUserById, getAuthoredPostings, getJoinedPostings } from '../api/user'
 import { getCurrentNickname } from '../api/auth'
 import { useToast } from '../hooks/useToast'
-import type { User } from '../types'
+import type { User, PostingSimple } from '../types'
 import Button from '../components/Button'
 import NavBar from '../components/NavBar'
 import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
@@ -17,6 +17,16 @@ function UserPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { id } = useParams<{ id: string }>()
+  
+  // 작성한 게시글 페이징
+  const [authoredPostings, setAuthoredPostings] = useState<PostingSimple[]>([])
+  const [authoredPage, setAuthoredPage] = useState(0)
+  const [authoredTotalPages, setAuthoredTotalPages] = useState(0)
+  
+  // 참가한 게시글 페이징
+  const [joinedPostings, setJoinedPostings] = useState<PostingSimple[]>([])
+  const [joinedPage, setJoinedPage] = useState(0)
+  const [joinedTotalPages, setJoinedTotalPages] = useState(0)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,6 +71,40 @@ function UserPage() {
 
     fetchUser()
   }, [])
+  
+  // 작성한 게시글 로드
+  useEffect(() => {
+    if (!user) return
+    
+    const fetchAuthoredPostings = async () => {
+      try {
+        const data = await getAuthoredPostings(user.id, authoredPage)
+        setAuthoredPostings(data.content)
+        setAuthoredTotalPages(data.totalPages)
+      } catch (err) {
+        console.error('작성한 게시글 조회 오류:', err)
+      }
+    }
+    
+    fetchAuthoredPostings()
+  }, [user, authoredPage])
+  
+  // 참가한 게시글 로드
+  useEffect(() => {
+    if (!user) return
+    
+    const fetchJoinedPostings = async () => {
+      try {
+        const data = await getJoinedPostings(user.id, joinedPage)
+        setJoinedPostings(data.content)
+        setJoinedTotalPages(data.totalPages)
+      } catch (err) {
+        console.error('참가한 게시글 조회 오류:', err)
+      }
+    }
+    
+    fetchJoinedPostings()
+  }, [user, joinedPage])
 
   if (loading) {
     return (
@@ -109,76 +153,166 @@ function UserPage() {
           {/* 작성한 게시글 */}
           <div className="user-section">
             <h2 className="section-title">
-              📝 작성한 게시글 ({user.authoredPostings.length})
+              📝 작성한 게시글
             </h2>
-            {user.authoredPostings.length === 0 ? (
+            {authoredPostings.length === 0 ? (
               <p className="empty-message">작성한 게시글이 없습니다.</p>
             ) : (
-              <div className="postings-grid">
-                {user.authoredPostings.map((posting) => (
-                  <Link
-                    key={posting.id}
-                    to={`/postings/${posting.id}`}
-                    className="posting-card"
-                  >
-                    <div className="posting-card-header">
-                      <h3 className="posting-card-title">{posting.title}</h3>
-                      <div className="posting-card-badges">
-                        <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
-                          {getTypeLabel(posting.type)}
-                        </span>
-                        <span className={`badge ${getStatusClass(posting.status)}`}>
-                          {getStatusLabel(posting.status)}
+              <>
+                <div className="postings-grid">
+                  {authoredPostings.map((posting) => (
+                    <Link
+                      key={posting.id}
+                      to={`/postings/${posting.id}`}
+                      className="posting-card"
+                    >
+                      <div className="posting-card-header">
+                        <h3 className="posting-card-title">{posting.title}</h3>
+                        <div className="posting-card-badges">
+                          <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
+                            {getTypeLabel(posting.type)}
+                          </span>
+                          <span className={`badge ${getStatusClass(posting.status)}`}>
+                            {getStatusLabel(posting.status)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="posting-card-meta">
+                        <span>👥 최대 {posting.maxCapacity}명</span>
+                        <span>
+                          {new Date(posting.createdAt).toLocaleDateString('ko-KR')}
                         </span>
                       </div>
-                    </div>
-                    <div className="posting-card-meta">
-                      <span>👥 최대 {posting.maxCapacity}명</span>
-                      <span>
-                        {new Date(posting.createdAt).toLocaleDateString('ko-KR')}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* 페이지네이션 */}
+                {authoredTotalPages > 0 && (
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    marginTop: '20px'
+                  }}>
+                    <Button
+                      onClick={() => setAuthoredPage(0)}
+                      disabled={authoredPage === 0}
+                      variant="secondary"
+                    >
+                      처음
+                    </Button>
+                    <Button
+                      onClick={() => setAuthoredPage(authoredPage - 1)}
+                      disabled={authoredPage === 0}
+                      variant="secondary"
+                    >
+                      이전
+                    </Button>
+                    <span style={{ padding: '0 15px', fontWeight: 'bold' }}>
+                      {authoredPage + 1} / {authoredTotalPages}
+                    </span>
+                    <Button
+                      onClick={() => setAuthoredPage(authoredPage + 1)}
+                      disabled={authoredPage >= authoredTotalPages - 1}
+                      variant="secondary"
+                    >
+                      다음
+                    </Button>
+                    <Button
+                      onClick={() => setAuthoredPage(authoredTotalPages - 1)}
+                      disabled={authoredPage >= authoredTotalPages - 1}
+                      variant="secondary"
+                    >
+                      마지막
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           {/* 참가한 게시글 */}
           <div className="user-section">
             <h2 className="section-title">
-              🙋‍♂️ 참가한 게시글 ({user.joinedPostings.length})
+              🙋‍♂️ 참가한 게시글
             </h2>
-            {user.joinedPostings.length === 0 ? (
+            {joinedPostings.length === 0 ? (
               <p className="empty-message">참가한 게시글이 없습니다.</p>
             ) : (
-              <div className="postings-grid">
-                {user.joinedPostings.map((posting) => (
-                  <Link
-                    key={posting.id}
-                    to={`/postings/${posting.id}`}
-                    className="posting-card"
-                  >
-                    <div className="posting-card-header">
-                      <h3 className="posting-card-title">{posting.title}</h3>
-                      <div className="posting-card-badges">
-                        <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
-                          {getTypeLabel(posting.type)}
-                        </span>
-                        <span className={`badge ${getStatusClass(posting.status)}`}>
-                          {getStatusLabel(posting.status)}
+              <>
+                <div className="postings-grid">
+                  {joinedPostings.map((posting) => (
+                    <Link
+                      key={posting.id}
+                      to={`/postings/${posting.id}`}
+                      className="posting-card"
+                    >
+                      <div className="posting-card-header">
+                        <h3 className="posting-card-title">{posting.title}</h3>
+                        <div className="posting-card-badges">
+                          <span className={`badge ${posting.type === 'PROJECT' ? 'badge-project' : 'badge-study'}`}>
+                            {getTypeLabel(posting.type)}
+                          </span>
+                          <span className={`badge ${getStatusClass(posting.status)}`}>
+                            {getStatusLabel(posting.status)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="posting-card-meta">
+                        <span>✍️ {posting.authorNickname}</span>
+                        <span>
+                          {new Date(posting.createdAt).toLocaleDateString('ko-KR')}
                         </span>
                       </div>
-                    </div>
-                    <div className="posting-card-meta">
-                      <span>✍️ {posting.authorNickname}</span>
-                      <span>
-                        {new Date(posting.createdAt).toLocaleDateString('ko-KR')}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* 페이지네이션 */}
+                {joinedTotalPages > 0 && (
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    marginTop: '20px'
+                  }}>
+                    <Button
+                      onClick={() => setJoinedPage(0)}
+                      disabled={joinedPage === 0}
+                      variant="secondary"
+                    >
+                      처음
+                    </Button>
+                    <Button
+                      onClick={() => setJoinedPage(joinedPage - 1)}
+                      disabled={joinedPage === 0}
+                      variant="secondary"
+                    >
+                      이전
+                    </Button>
+                    <span style={{ padding: '0 15px', fontWeight: 'bold' }}>
+                      {joinedPage + 1} / {joinedTotalPages}
+                    </span>
+                    <Button
+                      onClick={() => setJoinedPage(joinedPage + 1)}
+                      disabled={joinedPage >= joinedTotalPages - 1}
+                      variant="secondary"
+                    >
+                      다음
+                    </Button>
+                    <Button
+                      onClick={() => setJoinedPage(joinedTotalPages - 1)}
+                      disabled={joinedPage >= joinedTotalPages - 1}
+                      variant="secondary"
+                    >
+                      마지막
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

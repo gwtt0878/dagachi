@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import NavBar from '../components/NavBar'
 import '../styles/common.css'
 import type { Posting } from '../types'
-import { getAllPostings } from '../api/posting'
+import { getAllPostings, searchPostings, SearchPostingParams } from '../api/posting'
 import { AxiosError } from 'axios'
 import { getTypeLabel, getStatusLabel } from '../constants'
 
@@ -15,14 +15,25 @@ function PostingsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  
+  // 검색 필터
+  const [searchMode, setSearchMode] = useState(false)
+  const [searchTitle, setSearchTitle] = useState('')
+  const [searchType, setSearchType] = useState<'' | 'PROJECT' | 'STUDY'>('')
+  const [searchStatus, setSearchStatus] = useState<'' | 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'>('')
+  const [searchAuthorNickname, setSearchAuthorNickname] = useState('')
 
-  const fetchPostings = useCallback(async () => {
+  const fetchPostings = useCallback(async (page: number = 0) => {
     setLoading(true)
     setError(null)
     
     try {
-      const data = await getAllPostings()
-      setPostings(data)
+      const data = await getAllPostings(page)
+      setPostings(data.content)
+      setTotalPages(data.totalPages)
+      setCurrentPage(data.number)
     } catch (err) {
       if (err instanceof AxiosError && err.status === 403) {
         navigate('/login')
@@ -34,6 +45,74 @@ function PostingsPage() {
       setLoading(false)
     }
   }, [navigate])
+  
+  const handleSearch = async () => {
+    // 검색 조건이 하나라도 있으면 검색 모드
+    if (!searchTitle && !searchType && !searchStatus && !searchAuthorNickname) {
+      setError('최소 하나 이상의 검색 조건을 입력해주세요.')
+      return
+    }
+    
+    setSearchMode(true)
+    setCurrentPage(0)
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const params: SearchPostingParams = {
+        title: searchTitle || undefined,
+        type: searchType || undefined,
+        status: searchStatus || undefined,
+        authorNickname: searchAuthorNickname || undefined,
+        page: 0
+      }
+      
+      const data = await searchPostings(params)
+      setPostings(data.content)
+      setTotalPages(data.totalPages)
+      setCurrentPage(data.number)
+    } catch (err) {
+      setError('검색에 실패했습니다.')
+      console.error('검색 오류:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handleSearchWithPage = async (page: number) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const params: SearchPostingParams = {
+        title: searchTitle || undefined,
+        type: searchType || undefined,
+        status: searchStatus || undefined,
+        authorNickname: searchAuthorNickname || undefined,
+        page
+      }
+      
+      const data = await searchPostings(params)
+      setPostings(data.content)
+      setTotalPages(data.totalPages)
+      setCurrentPage(data.number)
+    } catch (err) {
+      setError('검색에 실패했습니다.')
+      console.error('검색 오류:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handleReset = () => {
+    setSearchMode(false)
+    setSearchTitle('')
+    setSearchType('')
+    setSearchStatus('')
+    setSearchAuthorNickname('')
+    setCurrentPage(0)
+    fetchPostings(0)
+  }
 
   useEffect(() => {
     // 로그인 체크
@@ -44,8 +123,16 @@ function PostingsPage() {
       return
     }
     
-    fetchPostings()
-  }, [fetchPostings])
+    fetchPostings(currentPage)
+  }, [fetchPostings, currentPage])
+  
+  const handlePageChange = (newPage: number) => {
+    if (searchMode) {
+      handleSearchWithPage(newPage)
+    } else {
+      setCurrentPage(newPage)
+    }
+  }
 
   return (
     <>
@@ -95,6 +182,117 @@ function PostingsPage() {
         </Button>
       </div>
 
+      {/* 검색 필터 */}
+      <div style={{
+        maxWidth: '1000px',
+        margin: '0 auto 30px',
+        padding: '20px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '8px',
+        border: '1px solid #ddd'
+      }}>
+        <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#333' }}>🔍 게시글 검색</h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
+          {/* 제목 검색 */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>제목</label>
+            <input
+              type="text"
+              value={searchTitle}
+              onChange={(e) => setSearchTitle(e.target.value)}
+              placeholder="제목 검색..."
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          
+          {/* 타입 선택 */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>타입</label>
+            <select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value as '' | 'PROJECT' | 'STUDY')}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">전체</option>
+              <option value="PROJECT">프로젝트</option>
+              <option value="STUDY">스터디</option>
+            </select>
+          </div>
+          
+          {/* 상태 선택 */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>상태</label>
+            <select
+              value={searchStatus}
+              onChange={(e) => setSearchStatus(e.target.value as '' | 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED')}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">전체</option>
+              <option value="RECRUITING">모집중</option>
+              <option value="IN_PROGRESS">진행중</option>
+              <option value="COMPLETED">완료</option>
+            </select>
+          </div>
+          
+          {/* 작성자 검색 */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>작성자</label>
+            <input
+              type="text"
+              value={searchAuthorNickname}
+              onChange={(e) => setSearchAuthorNickname(e.target.value)}
+              placeholder="작성자 닉네임..."
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        </div>
+        
+        {/* 검색 버튼 */}
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <Button onClick={handleSearch} variant="primary">
+            검색
+          </Button>
+          <Button onClick={handleReset} variant="secondary">
+            초기화
+          </Button>
+        </div>
+        
+        {searchMode && (
+          <div style={{ marginTop: '10px', textAlign: 'center', color: '#666', fontSize: '14px' }}>
+            🔎 검색 결과입니다
+          </div>
+        )}
+      </div>
+
       {loading && <p>불러오는 중...</p>}
       
       {error && <p className="error-message">{error}</p>}
@@ -139,8 +337,59 @@ function PostingsPage() {
         </div>
       )}
 
+      {/* 페이지네이션 */}
+      {!loading && totalPages > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          gap: '10px', 
+          marginTop: '30px',
+          marginBottom: '20px'
+        }}>
+          <Button
+            onClick={() => handlePageChange(0)}
+            disabled={currentPage === 0}
+            variant="secondary"
+          >
+            처음
+          </Button>
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+            variant="secondary"
+          >
+            이전
+          </Button>
+          <span style={{ 
+            padding: '0 15px', 
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}>
+            {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages - 1}
+            variant="secondary"
+          >
+            다음
+          </Button>
+          <Button
+            onClick={() => handlePageChange(totalPages - 1)}
+            disabled={currentPage >= totalPages - 1}
+            variant="secondary"
+          >
+            마지막
+          </Button>
+        </div>
+      )}
+
       <div className="refresh-button">
-        <Button onClick={fetchPostings} variant="primary">
+        <Button 
+          onClick={() => searchMode ? handleSearchWithPage(currentPage) : fetchPostings(currentPage)} 
+          variant="primary"
+        >
           새로고침
         </Button>
       </div>

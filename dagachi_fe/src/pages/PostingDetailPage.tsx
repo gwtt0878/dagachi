@@ -157,7 +157,7 @@ function PostingDetailPage() {
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 400) {
-          showToast('참가하지 않은 게시글입니다.', 'error')
+          showToast('참가 취소에 실패했습니다. (이미 승인되었을 수 있습니다)', 'error')
           return
         }
         if (err.response?.status === 403) {
@@ -165,7 +165,7 @@ function PostingDetailPage() {
           return
         }
         if (err.response?.status === 404) {
-          showToast('게시글을 찾을 수 없습니다.', 'error')
+          showToast('참가 정보를 찾을 수 없습니다.', 'error')
           return
         }
         showToast('참가 취소에 실패했습니다.', 'error')
@@ -371,6 +371,13 @@ function PostingDetailPage() {
           )}
           {isAuthor && (
             <>
+              <Button 
+                onClick={() => navigate(`/postings/${id}/participants`)} 
+                variant="primary"
+                style={{ backgroundColor: '#8b5cf6' }}
+              >
+                👥 참가자 관리
+              </Button>
               <Button 
                 onClick={() => navigate(`/postings/${id}/edit`)} 
                 variant="primary"

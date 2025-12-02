@@ -26,6 +26,30 @@ export interface User {
   username: string
   nickname: string
   role: string
-  authoredPostings: PostingSimple[]
-  joinedPostings: PostingSimple[]
+}
+
+export interface Participation {
+  participationId: number
+  postingId: number
+  participantId: number
+  participantNickname: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PageResponse<T> {
+  content: T[]
+  pageable: {
+    pageNumber: number
+    pageSize: number
+  }
+  totalElements: number
+  totalPages: number
+  last: boolean
+  first: boolean
+  number: number
+  size: number
+  numberOfElements: number
+  empty: boolean
 }
