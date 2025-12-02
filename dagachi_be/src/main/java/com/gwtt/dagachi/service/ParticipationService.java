@@ -131,7 +131,7 @@ public class ParticipationService {
             .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
     Participation participation =
         participationRepository
-            .findByIdForUpdate(participationId)
+            .findByIdWithPostingForUpdate(participationId)
             .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
 
     Posting posting = participation.getPosting();
@@ -173,7 +173,7 @@ public class ParticipationService {
             .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
     Participation participation =
         participationRepository
-            .findByIdForUpdate(participationId)
+            .findByIdWithPostingForUpdate(participationId)
             .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
 
     Posting posting = participation.getPosting();

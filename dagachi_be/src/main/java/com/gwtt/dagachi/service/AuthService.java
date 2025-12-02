@@ -5,6 +5,7 @@ import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.LoginRequestDto;
 import com.gwtt.dagachi.dto.SignupRequestDto;
 import com.gwtt.dagachi.entity.User;
+import com.gwtt.dagachi.exception.NotFoundUserException;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -48,7 +49,7 @@ public class AuthService {
       String jwt = jwtTokenProvider.generateToken(authentication);
       return jwt;
     } catch (Exception e) {
-      throw new RuntimeException("로그인에 실패했습니다. : " + e.getMessage());
+      throw new NotFoundUserException("로그인에 실패했습니다. : " + e.getMessage());
     }
   }
 }

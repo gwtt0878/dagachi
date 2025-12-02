@@ -213,7 +213,7 @@ class ParticipationServiceTest {
     void success() {
       // given
       given(userRepository.findById(1L)).willReturn(Optional.of(author));
-      given(participationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(participation));
+      given(participationRepository.findByIdWithPostingForUpdate(1L)).willReturn(Optional.of(participation));
       given(participationRepository.countByPostingAndStatus(posting, ParticipationStatus.APPROVED))
           .willReturn(0);
 
@@ -230,7 +230,7 @@ class ParticipationServiceTest {
     void cannotApproveIfNotAuthor() {
       // given
       given(userRepository.findById(2L)).willReturn(Optional.of(participant));
-      given(participationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(participation));
+      given(participationRepository.findByIdWithPostingForUpdate(1L)).willReturn(Optional.of(participation));
 
       // when & then
       assertThatThrownBy(() -> participationService.approveUser(2L, 1L))
@@ -243,7 +243,7 @@ class ParticipationServiceTest {
     void cannotApproveExceedMaxCapacity() {
       // given
       given(userRepository.findById(1L)).willReturn(Optional.of(author));
-      given(participationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(participation));
+      given(participationRepository.findByIdWithPostingForUpdate(1L)).willReturn(Optional.of(participation));
       given(participationRepository.countByPostingAndStatus(posting, ParticipationStatus.APPROVED))
           .willReturn(5);
 
@@ -259,7 +259,7 @@ class ParticipationServiceTest {
       // given
       participation.setStatus(ParticipationStatus.APPROVED);
       given(userRepository.findById(1L)).willReturn(Optional.of(author));
-      given(participationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(participation));
+      given(participationRepository.findByIdWithPostingForUpdate(1L)).willReturn(Optional.of(participation));
 
       // when & then
       assertThatThrownBy(() -> participationService.approveUser(1L, 1L))
