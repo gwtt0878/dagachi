@@ -5,8 +5,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./backend/*.jar:/app/*.jar
-    command: ["java", "-jar", "*.jar"]
+      - ./backend/app.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
     restart: always
     networks:
       - dagachi-network

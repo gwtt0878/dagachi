@@ -7,6 +7,7 @@ on:
     paths:
         - 'dagachi_be/**'
         - '.github/workflows/be.yml'
+        - 'docker-compose.prod.yml'
 
 jobs:
   deploy:
