@@ -52,8 +52,9 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "dagachi_be/build/libs/app.jar"
-          target: "/home/ubuntu/dagachi/backend/app.jar"
+          source: "dagachi_be/build/libs/"
+          target: "/home/ubuntu/dagachi/backend/"
+          strip_components: 3
 
       - name: SSH and restart Spring Boot app
         uses: appleboy/ssh-action@v1.0.0
