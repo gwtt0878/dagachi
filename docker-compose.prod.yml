@@ -6,7 +6,7 @@ services:
       - "3000:3000"
     volumes:
       - ./backend/app.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+    command: ["java", "-jar", "/app/app.jar"]
     restart: always
     networks:
       - dagachi-network
