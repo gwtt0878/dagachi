@@ -33,9 +33,6 @@ jobs:
       - name: Build with Gradle
         run: cd dagachi_be && ./gradlew build -x test
 
-      - name: rename jar
-        run: cd dagachi_be/build/libs && mv *.jar app.jar
-
       - name: Upload docker-compose.prod.yml to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -51,8 +48,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "dagachi_be/build/libs/app.jar"
-          target: "/home/ubuntu/dagachi/backend/app.jar"
+          source: "dagachi_be/build/libs/*.jar"
+          target: "/home/ubuntu/dagachi/backend"
 
       - name: SSH and restart Spring Boot app
         uses: appleboy/ssh-action@v1.0.0
@@ -62,4 +59,5 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/dagachi
-            docker compose -f docker-compose.prod.yml restart backend
+            sudo docker compose -f docker-compose.prod.yml down backend
+            sudo docker compose -f docker-compose.prod.yml up -d backend

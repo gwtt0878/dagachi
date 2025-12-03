@@ -65,4 +65,5 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/dagachi
-            docker compose -f docker-compose.prod.yml restart frontend
+            sudo docker compose -f docker-compose.prod.yml down frontend
+            sudo docker compose -f docker-compose.prod.yml up -d frontend
