@@ -5,8 +5,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./dagachi/backend/app.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./backend/*.jar:/app/*.jar
+    command: ["java", "-jar", "*.jar"]
     restart: always
     networks:
       - dagachi-network
@@ -21,7 +21,7 @@ services:
     restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./dagachi/nginx/html:/usr/share/nginx/html
+      - ./nginx/html:/usr/share/nginx/html
     networks:
       - dagachi-network
 
