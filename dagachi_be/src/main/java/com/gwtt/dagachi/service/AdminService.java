@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminService {
   private final UserRepository userRepository;
 
+  @Transactional
   public void updateUserRole(Long userId, Role role) {
     User user =
         userRepository
