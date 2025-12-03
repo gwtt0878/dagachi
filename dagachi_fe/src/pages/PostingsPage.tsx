@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import NavBar from '../components/NavBar'
 import '../styles/common.css'
 import type { Posting } from '../types'
-import { getAllPostings, searchPostings, SearchPostingParams } from '../api/posting'
+import { getAllPostings, searchPostings, type SearchPostingParams } from '../api/posting'
 import { AxiosError } from 'axios'
 import { getTypeLabel, getStatusLabel } from '../constants'
 

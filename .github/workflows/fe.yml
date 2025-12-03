@@ -1,0 +1,72 @@
+name: Deploy React to EC2
+
+on:
+  push:
+    branches:
+      - production
+    paths:
+        - 'dagachi_fe/**'
+        - '.github/workflows/fe.yml'
+        - 'docker-compose.prod.yml'
+        - 'nginx.conf'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Create frontend .env
+        run: echo "${{ secrets.FRONTEND_ENV }}" > dagachi_fe/.env.production
+
+      - name: Install dependencies
+        run: cd dagachi_fe && npm ci
+
+      - name: Build project
+        run: cd dagachi_fe && npm run build
+
+      - name: Upload docker-compose.prod.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/home/ubuntu/dagachi"
+
+      - name: Upload nginx.conf to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "nginx.conf"
+          target: "/home/ubuntu/dagachi"
+
+      - name: Upload dist to EC2 nginx
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "dagachi_fe/dist/*"
+          target: "/home/ubuntu/dagachi/nginx/html"
+          strip_components: 2
+      
+      - name: SSH and restart nginx
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/dagachi
+            sudo docker compose -f docker-compose.prod.yml down frontend
+            sudo docker compose -f docker-compose.prod.yml up -d frontend
