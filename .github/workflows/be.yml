@@ -45,6 +45,16 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "docker-compose.prod.yml"
           target: "/home/ubuntu/dagachi"
+          
+      - name: SSH and restart Spring Boot app
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/dagachi
+            sudo docker compose -f docker-compose.prod.yml down backend --volumes
 
       - name: Upload JAR to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -52,8 +62,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "dagachi_be/build/libs/"
-          target: "/home/ubuntu/dagachi/backend/"
+          source: "dagachi_be/build/libs/app.jar"
+          target: "/home/ubuntu/dagachi/backend"
           strip_components: 3
 
       - name: SSH and restart Spring Boot app
@@ -64,5 +74,4 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/dagachi
-            sudo docker compose -f docker-compose.prod.yml down backend
             sudo docker compose -f docker-compose.prod.yml up -d backend
