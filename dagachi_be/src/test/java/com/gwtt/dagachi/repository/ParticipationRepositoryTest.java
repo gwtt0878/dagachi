@@ -2,12 +2,14 @@ package com.gwtt.dagachi.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.gwtt.dagachi.config.JpaAuditingConfig;
+import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingType;
+import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.entity.Participation;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
-import com.gwtt.dagachi.constants.Role;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,8 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import com.gwtt.dagachi.config.TestQueryDSLConfig;
-import com.gwtt.dagachi.config.JpaAuditingConfig;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -36,11 +36,22 @@ class ParticipationRepositoryTest {
 
   @BeforeEach
   void setUp() {
-    author = User.builder().username("author").password("password").role(Role.USER).nickname("작성자").build();
+    author =
+        User.builder()
+            .username("author")
+            .password("password")
+            .role(Role.USER)
+            .nickname("작성자")
+            .build();
     author = userRepository.save(author);
 
     participant =
-        User.builder().username("participant").password("password").role(Role.USER).nickname("참가자").build();
+        User.builder()
+            .username("participant")
+            .password("password")
+            .role(Role.USER)
+            .nickname("참가자")
+            .build();
     participant = userRepository.save(participant);
 
     posting =
@@ -62,7 +73,12 @@ class ParticipationRepositoryTest {
     participationRepository.save(p1);
 
     User participant2 =
-        User.builder().username("participant2").password("password").role(Role.USER).nickname("참가자2").build();
+        User.builder()
+            .username("participant2")
+            .password("password")
+            .role(Role.USER)
+            .nickname("참가자2")
+            .build();
     participant2 = userRepository.save(participant2);
     Participation p2 = Participation.builder().posting(posting).participant(participant2).build();
     participationRepository.save(p2);
@@ -72,7 +88,8 @@ class ParticipationRepositoryTest {
 
     // then
     assertThat(result).hasSize(2);
-    assertThat(result).extracting(p -> p.getParticipant().getNickname())
+    assertThat(result)
+        .extracting(p -> p.getParticipant().getNickname())
         .containsExactlyInAnyOrder("참가자", "참가자2");
   }
 
@@ -85,10 +102,8 @@ class ParticipationRepositoryTest {
     participationRepository.save(participation);
 
     // when
-    boolean exists =
-        participationRepository.existsByParticipantAndPosting(participant, posting);
-    boolean notExists =
-        participationRepository.existsByParticipantAndPosting(author, posting);
+    boolean exists = participationRepository.existsByParticipantAndPosting(participant, posting);
+    boolean notExists = participationRepository.existsByParticipantAndPosting(author, posting);
 
     // then
     assertThat(exists).isTrue();
@@ -121,14 +136,24 @@ class ParticipationRepositoryTest {
     participationRepository.save(p1);
 
     User participant2 =
-        User.builder().username("participant2").password("password").role(Role.USER).nickname("참가자2").build();
+        User.builder()
+            .username("participant2")
+            .password("password")
+            .role(Role.USER)
+            .nickname("참가자2")
+            .build();
     participant2 = userRepository.save(participant2);
     Participation p2 = Participation.builder().posting(posting).participant(participant2).build();
     p2.setStatus(ParticipationStatus.APPROVED);
     participationRepository.save(p2);
 
     User participant3 =
-        User.builder().username("participant3").password("password").role(Role.USER).nickname("참가자3").build();
+        User.builder()
+            .username("participant3")
+            .password("password")
+            .role(Role.USER)
+            .nickname("참가자3")
+            .build();
     participant3 = userRepository.save(participant3);
     Participation p3 = Participation.builder().posting(posting).participant(participant3).build();
     // PENDING 상태
@@ -166,4 +191,3 @@ class ParticipationRepositoryTest {
     assertThat(allParticipations).isEmpty();
   }
 }
-

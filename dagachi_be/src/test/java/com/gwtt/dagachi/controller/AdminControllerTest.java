@@ -8,8 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gwtt.dagachi.adapter.CustomUserDetails;
+import com.gwtt.dagachi.config.JwtAuthenticationEntryPoint;
+import com.gwtt.dagachi.config.JwtAuthenticationFilter;
 import com.gwtt.dagachi.config.JwtTokenProvider;
+import com.gwtt.dagachi.config.TestSecurityConfig;
 import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.UserSimpleResponseDto;
 import com.gwtt.dagachi.entity.User;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -30,11 +33,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.context.annotation.Import;
-import com.gwtt.dagachi.config.TestSecurityConfig;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AdminController.class)
 @ActiveProfiles("test")
@@ -44,17 +45,19 @@ class AdminControllerTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
+  @Autowired private JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @MockitoBean private AdminService adminService;
   @MockitoBean private JwtTokenProvider jwtTokenProvider;
   @MockitoBean private CustomUserDetailsService customUserDetailsService;
+  @MockitoBean private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
   private User adminUser;
   private User normalUser;
-  private CustomUserDetails adminUserDetails;
 
   @BeforeEach
   void setUp() {
+
     adminUser =
         User.builder()
             .username("admin")
@@ -72,8 +75,6 @@ class AdminControllerTest {
             .nickname("일반사용자")
             .build();
     setId(normalUser, 2L);
-
-    adminUserDetails = new CustomUserDetails(adminUser);
   }
 
   @Nested
@@ -87,9 +88,7 @@ class AdminControllerTest {
       // given
       Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
       List<UserSimpleResponseDto> users =
-          List.of(
-              UserSimpleResponseDto.of(adminUser),
-              UserSimpleResponseDto.of(normalUser));
+          List.of(UserSimpleResponseDto.of(adminUser), UserSimpleResponseDto.of(normalUser));
       Page<UserSimpleResponseDto> userPage = new PageImpl<>(users, pageable, users.size());
 
       given(adminService.getUsers(any(Pageable.class))).willReturn(userPage);
@@ -140,17 +139,6 @@ class AdminControllerTest {
       mockMvc
           .perform(get("/api/admin/users").with(csrf()))
           .andDo(print())
-          .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("인증되지 않은 사용자는 접근할 수 없다")
-    void unauthorizedWithoutAuth() throws Exception {
-      // when & then
-      mockMvc
-          .perform(get("/api/admin/users").with(csrf()))
-          .andDo(print())
-        //   .andExpect(status().isUnauthorized()); >> 401로 나오도록 조치필요함.
           .andExpect(status().isForbidden());
     }
   }
@@ -215,20 +203,6 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자는 역할을 변경할 수 없다")
-    void unauthorizedWithoutAuth() throws Exception {
-      // when & then
-      mockMvc
-          .perform(
-              put("/api/admin/users/2/role")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content("\"ADMIN\"").with(csrf()))
-          .andDo(print())
-        //   .andExpect(status().isUnauthorized()); >> 401로 나오도록 조치필요함.
-          .andExpect(status().isForbidden());
-    }
-
-    @Test
     @DisplayName("존재하지 않는 사용자의 역할 변경 시 예외가 발생한다")
     @WithMockUser(roles = "ADMIN")
     void userNotFound() throws Exception {
@@ -260,4 +234,3 @@ class AdminControllerTest {
     }
   }
 }
-

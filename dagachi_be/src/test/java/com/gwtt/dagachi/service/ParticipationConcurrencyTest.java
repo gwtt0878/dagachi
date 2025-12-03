@@ -2,6 +2,8 @@ package com.gwtt.dagachi.service;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.gwtt.dagachi.config.SecurityConfig;
+import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingType;
 import com.gwtt.dagachi.constants.Role;
@@ -20,13 +22,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.gwtt.dagachi.config.TestQueryDSLConfig;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import; 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import com.gwtt.dagachi.config.SecurityConfig;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Import({TestQueryDSLConfig.class, SecurityConfig.class})
@@ -157,7 +157,8 @@ class ParticipationConcurrencyTest {
     for (int i = 0; i < 1000; i++) {
       participationService.joinPosting(participants.get(i).getId(), posting.getId());
     }
-    List<Participation> allParticipations = participationRepository.findByPostingId(posting.getId());
+    List<Participation> allParticipations =
+        participationRepository.findByPostingId(posting.getId());
     assertThat(allParticipations).hasSize(1000); // 1000명 모두 참가 성공
 
     // when - 5명을 동시에 승인
@@ -189,4 +190,3 @@ class ParticipationConcurrencyTest {
     assertThat(approvedCount).isEqualTo(approveSuccessCount.get());
   }
 }
-

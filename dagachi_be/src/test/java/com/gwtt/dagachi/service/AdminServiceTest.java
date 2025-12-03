@@ -3,6 +3,7 @@ package com.gwtt.dagachi.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.UserSimpleResponseDto;
 import com.gwtt.dagachi.entity.User;
@@ -18,13 +19,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.context.annotation.Import;
-import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import org.springframework.test.context.ActiveProfiles;
 
 @ExtendWith(MockitoExtension.class)
@@ -205,4 +205,3 @@ class AdminServiceTest {
     }
   }
 }
-

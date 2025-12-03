@@ -62,7 +62,7 @@ tasks.named('build') {
 
 spotless {
 	java {
-		target('src/main/java/**/*.java')
+		target('src/main/java/**/*.java', 'src/test/java/**/*.java')
 		googleJavaFormat()
 		// formatAnnotations()
 		removeUnusedImports()
