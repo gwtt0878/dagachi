@@ -47,8 +47,8 @@ services:
     networks:
       - dagachi-network
     depends_on:
-      - frontend:
-          condition: service_healthy
+      frontend:
+        condition: service_healthy
     restart: always
 
 networks:
