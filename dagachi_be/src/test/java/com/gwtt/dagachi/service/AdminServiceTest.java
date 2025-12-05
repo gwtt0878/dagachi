@@ -7,7 +7,7 @@ import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.UserSimpleResponseDto;
 import com.gwtt.dagachi.entity.User;
-import com.gwtt.dagachi.exception.NotFoundUserException;
+import com.gwtt.dagachi.exception.DagachiException;
 import com.gwtt.dagachi.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
@@ -189,7 +189,7 @@ class AdminServiceTest {
 
       // when & then
       assertThatThrownBy(() -> adminService.updateUserRole(999L, Role.ADMIN))
-          .isInstanceOf(NotFoundUserException.class)
+          .isInstanceOf(DagachiException.class)
           .hasMessageContaining("사용자를 찾을 수 없습니다.");
     }
   }

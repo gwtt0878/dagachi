@@ -15,7 +15,8 @@ import com.gwtt.dagachi.config.TestSecurityConfig;
 import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.UserSimpleResponseDto;
 import com.gwtt.dagachi.entity.User;
-import com.gwtt.dagachi.exception.NotFoundUserException;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.service.AdminService;
 import com.gwtt.dagachi.service.CustomUserDetailsService;
 import java.util.List;
@@ -207,7 +208,7 @@ class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void userNotFound() throws Exception {
       // given
-      willThrow(new NotFoundUserException("사용자를 찾을 수 없습니다."))
+      willThrow(new DagachiException(ErrorCode.USER_NOT_FOUND))
           .given(adminService)
           .updateUserRole(eq(999L), any(Role.class));
 

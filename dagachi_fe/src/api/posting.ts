@@ -1,5 +1,5 @@
 import api from './auth'
-import type { Posting, Participation, PageResponse } from '../types'
+import type { Posting, Participation, ParticipationSimple, PageResponse } from '../types'
 
 export interface CreatePostingRequest {
   title: string
@@ -13,13 +13,13 @@ export interface UpdatePostingRequest {
   description: string
   maxCapacity: number
   type: 'PROJECT' | 'STUDY'
-  status: 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'
+  status: 'RECRUITING' | 'RECRUITED' | 'COMPLETED'
 }
 
 export interface SearchPostingParams {
   title?: string
   type?: 'PROJECT' | 'STUDY' | ''
-  status?: 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED' | ''
+  status?: 'RECRUITING' | 'RECRUITED' | 'COMPLETED' | ''
   authorNickname?: string
   page?: number
 }
@@ -68,8 +68,8 @@ export const deletePosting = async (id: number): Promise<void> => {
 }
 
 // 포스팅 참가 여부 확인
-export const checkParticipation = async (postingId: number): Promise<boolean> => {
-  const response = await api.get<boolean>(`/api/participation/${postingId}/check`)
+export const checkParticipation = async (postingId: number): Promise<ParticipationSimple> => {
+  const response = await api.get<ParticipationSimple>(`/api/participation/${postingId}/check`)
   return response.data
 }
 
@@ -96,6 +96,11 @@ export const approveParticipation = async (postingId: number, participationId: n
 
 // 참가자 거절
 export const rejectParticipation = async (postingId: number, participationId: number): Promise<void> => {
+  await api.delete(`/api/participation/${postingId}/user/${participationId}`)
+}
+
+// 참가자 승인 취소 (승인된 참가자를 거절 처리)
+export const cancelApproval = async (postingId: number, participationId: number): Promise<void> => {
   await api.delete(`/api/participation/${postingId}/user/${participationId}`)
 }
 

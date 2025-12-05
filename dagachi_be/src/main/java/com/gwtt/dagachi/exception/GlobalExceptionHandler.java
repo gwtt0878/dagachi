@@ -13,8 +13,11 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
   }
 
-  @ExceptionHandler(NotFoundUserException.class)
-  public ResponseEntity<String> handleNotFoundUserException(NotFoundUserException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+  @ExceptionHandler(DagachiException.class)
+  public ResponseEntity<ErrorResponse> handleDagachiException(DagachiException e) {
+    ErrorCode errorCode = e.getErrorCode();
+    ErrorResponse errorResponse =
+        ErrorResponse.builder().code(errorCode.name()).message(errorCode.getMessage()).build();
+    return ResponseEntity.status(errorCode.getStatus()).body(errorResponse);
   }
 }

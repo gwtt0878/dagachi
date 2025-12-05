@@ -378,12 +378,12 @@
   background-color: rgba(76, 175, 80, 0.2);
 }
 
-.status-closed {
+.status-recruited {
   color: #FF9800;
   background-color: rgba(255, 152, 0, 0.2);
 }
 
-.status-ended {
+.status-completed {
   color: #666;
   background-color: rgba(102, 102, 102, 0.2);
 }

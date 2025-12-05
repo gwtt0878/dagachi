@@ -5,7 +5,8 @@ import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.LoginRequestDto;
 import com.gwtt.dagachi.dto.SignupRequestDto;
 import com.gwtt.dagachi.entity.User;
-import com.gwtt.dagachi.exception.NotFoundUserException;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +25,14 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final JwtTokenProvider jwtTokenProvider;
 
+  @Transactional
   public void signup(SignupRequestDto signupRequestDto) {
     if (userRepository.existsByUsername(signupRequestDto.getUsername())) {
-      throw new RuntimeException("이미 존재하는 사용자 ID입니다.");
+      throw new DagachiException(ErrorCode.DUPLICATE_USERNAME);
+    }
+
+    if (userRepository.existsByNickname(signupRequestDto.getNickname())) {
+      throw new DagachiException(ErrorCode.DUPLICATE_NICKNAME);
     }
 
     User user =
@@ -49,7 +56,7 @@ public class AuthService {
       String jwt = jwtTokenProvider.generateToken(authentication);
       return jwt;
     } catch (Exception e) {
-      throw new NotFoundUserException("로그인에 실패했습니다. : " + e.getMessage());
+      throw new DagachiException(ErrorCode.LOGIN_FAILED);
     }
   }
 }

@@ -2,6 +2,8 @@ package com.gwtt.dagachi.service;
 
 import com.gwtt.dagachi.adapter.CustomUserDetails;
 import com.gwtt.dagachi.entity.User;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     User user =
         userRepository
             .findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("ID(" + username + ")를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     return new CustomUserDetails(user);
   }
 }

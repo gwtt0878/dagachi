@@ -13,10 +13,10 @@ export const getStatusLabel = (status: string) => {
     switch (status) {
       case 'RECRUITING':
         return '모집중'
-      case 'IN_PROGRESS':
-        return '진행중'
+      case 'RECRUITED':
+        return '모집완료'
       case 'COMPLETED':
-        return '완료'
+        return '종료'
       default:
         return status
     }
@@ -26,8 +26,8 @@ export const getStatusClass = (status: string) => {
     switch (status) {
       case 'RECRUITING':
         return 'status-recruiting'
-      case 'IN_PROGRESS':
-        return 'status-in-progress'
+      case 'RECRUITED':
+        return 'status-recruited'
       case 'COMPLETED':
         return 'status-completed'
       default:

@@ -22,7 +22,7 @@ function PostingsPage() {
   const [searchMode, setSearchMode] = useState(false)
   const [searchTitle, setSearchTitle] = useState('')
   const [searchType, setSearchType] = useState<'' | 'PROJECT' | 'STUDY'>('')
-  const [searchStatus, setSearchStatus] = useState<'' | 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'>('')
+  const [searchStatus, setSearchStatus] = useState<'' | 'RECRUITING' | 'RECRUITED' | 'COMPLETED'>('')
   const [searchAuthorNickname, setSearchAuthorNickname] = useState('')
 
   const fetchPostings = useCallback(async (page: number = 0) => {
@@ -239,7 +239,7 @@ function PostingsPage() {
             <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>상태</label>
             <select
               value={searchStatus}
-              onChange={(e) => setSearchStatus(e.target.value as '' | 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED')}
+              onChange={(e) => setSearchStatus(e.target.value as '' | 'RECRUITING' | 'RECRUITED' | 'COMPLETED')}
               style={{
                 width: '100%',
                 padding: '8px',
@@ -251,8 +251,8 @@ function PostingsPage() {
             >
               <option value="">전체</option>
               <option value="RECRUITING">모집중</option>
-              <option value="IN_PROGRESS">진행중</option>
-              <option value="COMPLETED">완료</option>
+              <option value="RECRUITED">모집완료</option>
+              <option value="COMPLETED">종료</option>
             </select>
           </div>
           

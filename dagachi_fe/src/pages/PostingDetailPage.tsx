@@ -25,7 +25,7 @@ function PostingDetailPage() {
   const [isAuthor, setIsAuthor] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [joining, setJoining] = useState(false)
-  const [isParticipating, setIsParticipating] = useState(false)
+  const [participationStatus, setParticipationStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | null>(null)
   const [checkingParticipation, setCheckingParticipation] = useState(false)
   const [showAdminDeleteModal, setShowAdminDeleteModal] = useState(false)
 
@@ -53,8 +53,12 @@ function PostingDetailPage() {
         // 작성자가 아니면 참가 여부 확인
         try {
           setCheckingParticipation(true)
-          const participating = await checkParticipation(Number(id))
-          setIsParticipating(participating)
+          const participation = await checkParticipation(Number(id))
+          if (participation.participationId === -1) {
+            setParticipationStatus(null)
+          } else {
+            setParticipationStatus(participation.status)
+          }
         } catch (checkErr) {
           console.error('참가 여부 확인 오류:', checkErr)
         } finally {
@@ -132,7 +136,7 @@ function PostingDetailPage() {
     try {
       await joinPosting(Number(id))
       showToast('참가 신청이 완료되었습니다! 🎉', 'success')
-      setIsParticipating(true)
+      setParticipationStatus('PENDING')
       // 게시글 정보 새로고침 (참가자 수 업데이트 등을 위해)
       await fetchPosting()
     } catch (err: unknown) {
@@ -164,7 +168,7 @@ function PostingDetailPage() {
     try {
       await leavePosting(Number(id))
       showToast('참가가 취소되었습니다.', 'success')
-      setIsParticipating(false)
+      setParticipationStatus(null)
       // 게시글 정보 새로고침
       await fetchPosting()
     } catch (err: unknown) {
@@ -382,20 +386,46 @@ function PostingDetailPage() {
             목록으로
           </Button>
         </div> 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           {!isAuthor && (
             <>
-              {isParticipating ? (
+              {participationStatus === 'APPROVED' ? (
+                <span
+                  style={{
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    fontSize: '16px'
+                  }}
+                >
+                  ✅ 승인됨
+                </span>
+              ) : participationStatus === 'REJECTED' ? (
+                <span
+                  style={{
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    fontSize: '16px'
+                  }}
+                >
+                  ❌ 거절됨
+                </span>
+              ) : participationStatus === 'PENDING' ? (
                 <Button 
                   onClick={handleLeave} 
                   variant="primary"
                   disabled={joining || checkingParticipation}
                   style={{ 
-                    backgroundColor: '#ef4444',
+                    backgroundColor: '#f59e0b',
                     cursor: 'pointer'
                   }}
                 >
-                  {joining ? '취소 중...' : '❌ 참가 취소'}
+                  {joining ? '취소 중...' : '⏳ 승인 대기 중 (취소하기)'}
                 </Button>
               ) : (
                 <Button 
