@@ -2,6 +2,6 @@ package com.gwtt.dagachi.constants;
 
 public enum PostingStatus {
   RECRUITING,
-  IN_PROGRESS,
+  RECRUITED,
   COMPLETED
 }

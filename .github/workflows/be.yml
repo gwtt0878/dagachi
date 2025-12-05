@@ -1,0 +1,77 @@
+name: Deploy Spring Boot to EC2
+
+on:
+  push:
+    branches:
+      - production
+    paths:
+        - 'dagachi_be/**'
+        - '.github/workflows/be.yml'
+        - 'docker-compose.prod.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "corretto"
+          java-version: "17"
+      
+      - name: Create backend application.yml
+        run: |
+          mkdir -p dagachi_be/src/main/resources
+          echo "${{ secrets.BACKEND_APP_YML }}" > dagachi_be/src/main/resources/application-prod.yaml
+
+      - name: chmod +x gradlew
+        run: cd dagachi_be && chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: cd dagachi_be && ./gradlew build -x test
+
+      - name: Rename jar
+        run: mv dagachi_be/build/libs/*.jar dagachi_be/build/libs/app.jar
+
+      - name: Upload docker-compose.prod.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/home/ubuntu/dagachi"
+          
+      - name: SSH and stop Spring Boot app
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/dagachi
+            sudo docker compose -f docker-compose.prod.yml down backend --volumes
+
+      - name: Upload JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "dagachi_be/build/libs/app.jar"
+          target: "/home/ubuntu/dagachi/backend"
+          strip_components: 3
+
+      - name: SSH and start Spring Boot app
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/dagachi
+            sudo docker compose -f docker-compose.prod.yml up -d backend

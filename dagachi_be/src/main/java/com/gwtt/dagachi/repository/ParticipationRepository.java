@@ -15,10 +15,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
-
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT p FROM Participation p WHERE p.id = :id")
-  Optional<Participation> findByIdForUpdate(Long id);
+  @Query("SELECT p FROM Participation p JOIN FETCH p.posting WHERE p.id = :id")
+  Optional<Participation> findByIdWithPostingForUpdate(@Param("id") Long id);
 
   List<Participation> findByPostingId(Long postingId);
 

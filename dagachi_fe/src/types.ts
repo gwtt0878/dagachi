@@ -38,6 +38,12 @@ export interface Participation {
   updatedAt: string
 }
 
+export interface ParticipationSimple {
+  participationId: number | null
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | null
+  createdAt: string | null
+}
+
 export interface PageResponse<T> {
   content: T[]
   pageable: {

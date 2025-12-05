@@ -3,9 +3,13 @@ package com.gwtt.dagachi.service;
 import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingStatus;
 import com.gwtt.dagachi.dto.ParticipationResponseDto;
+import com.gwtt.dagachi.dto.ParticipationSimpleResponseDto;
+import java.time.LocalDateTime;
 import com.gwtt.dagachi.entity.Participation;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.ParticipationRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
@@ -22,17 +26,30 @@ public class ParticipationService {
   private final ParticipationRepository participationRepository;
 
   @Transactional(readOnly = true)
-  public boolean isParticipating(Long userId, Long postingId) {
+  public ParticipationSimpleResponseDto getSimpleParticipation(Long userId, Long postingId) {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     Posting posting =
         postingRepository
             .findById(postingId)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
-    return participationRepository.existsByParticipantAndPosting(user, posting);
+    Participation participation =
+        participationRepository
+            .findByParticipantAndPosting(user, posting)
+            .orElse(null);
+
+    // 참가하지 않은 경우 -1 반환
+    if (participation == null) {
+      return ParticipationSimpleResponseDto.builder()
+          .participationId(-1L)
+          .createdAt(LocalDateTime.now())
+          .status(ParticipationStatus.PENDING)
+          .build();
+    }
+    return ParticipationSimpleResponseDto.of(participation);
   }
 
   @Transactional(readOnly = true)
@@ -40,16 +57,16 @@ public class ParticipationService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     Posting posting =
         postingRepository
             .findById(postingId)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     Participation participation =
         participationRepository
             .findByParticipantAndPosting(user, posting)
-            .orElseThrow(() -> new RuntimeException("참가 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.PARTICIPATION_NOT_FOUND));
 
     return ParticipationResponseDto.of(participation);
   }
@@ -59,10 +76,10 @@ public class ParticipationService {
     Posting posting =
         postingRepository
             .findById(postingId)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     if (!posting.getAuthor().getId().equals(userId)) {
-      throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
 
     List<Participation> participations = participationRepository.findByPostingId(postingId);
@@ -74,22 +91,23 @@ public class ParticipationService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     Posting posting =
         postingRepository
             .findByIdForUpdate(postingId)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     if (posting.getAuthor().getId().equals(userId)) {
-      throw new RuntimeException("본인이 참여할 수 없습니다.");
+      throw new DagachiException(ErrorCode.USER_NOT_AUTHORIZED);
     }
 
     if (participationRepository.existsByParticipantAndPosting(user, posting)) {
-      throw new RuntimeException("이미 해당 게시글에 참여했습니다.");
+      throw new DagachiException(ErrorCode.PARTICIPATION_ALREADY_JOINED);
     }
 
-    if (posting.getStatus().equals(PostingStatus.COMPLETED)) {
-      throw new RuntimeException("해당 게시글의 참여가 종료되었습니다.");
+    if (posting.getStatus().equals(PostingStatus.COMPLETED)
+        || posting.getStatus().equals(PostingStatus.RECRUITED)) {
+      throw new DagachiException(ErrorCode.POSTING_ALREADY_RECRUITED);
     }
 
     Participation participation =
@@ -103,23 +121,22 @@ public class ParticipationService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     Posting posting =
         postingRepository
             .findById(postingId)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     Participation participation =
         participationRepository
             .findByParticipantAndPostingForUpdate(user, posting)
-            .orElseThrow(() -> new RuntimeException("참가 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.PARTICIPATION_NOT_FOUND));
 
     if (participation.getStatus().equals(ParticipationStatus.APPROVED)) {
-      throw new RuntimeException("해당 참여 정보는 이미 승인되었습니다.");
+      throw new DagachiException(ErrorCode.PARTICIPATION_ALREADY_APPROVED);
     }
     if (participation.getStatus().equals(ParticipationStatus.REJECTED)) {
-      throw new RuntimeException("해당 참여 정보는 이미 거절되었습니다.");
+      throw new DagachiException(ErrorCode.PARTICIPATION_ALREADY_REJECTED);
     }
-
     participationRepository.delete(participation);
   }
 
@@ -128,40 +145,41 @@ public class ParticipationService {
     User author =
         userRepository
             .findById(authorId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     Participation participation =
         participationRepository
-            .findByIdForUpdate(participationId)
-            .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
+            .findByIdWithPostingForUpdate(participationId)
+            .orElseThrow(() -> new DagachiException(ErrorCode.PARTICIPATION_NOT_FOUND));
 
-    Posting posting = participation.getPosting();
+    Posting posting =
+        postingRepository
+            .findByIdForUpdate(participation.getPosting().getId())
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     if (!posting.getAuthor().getId().equals(author.getId())) {
-      throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
 
     if (posting.getStatus().equals(PostingStatus.COMPLETED)
-        || posting.getStatus().equals(PostingStatus.IN_PROGRESS)) {
-      throw new RuntimeException("해당 게시글의 참여가 종료되었습니다.");
+        || posting.getStatus().equals(PostingStatus.RECRUITED)) {
+      throw new DagachiException(ErrorCode.POSTING_ALREADY_RECRUITED);
     }
 
     if (participation.getStatus().equals(ParticipationStatus.APPROVED)) {
-      throw new RuntimeException("해당 참여 정보는 이미 승인되었습니다.");
+      throw new DagachiException(ErrorCode.PARTICIPATION_ALREADY_APPROVED);
     }
 
     int currentApprovedUsers =
         participationRepository.countByPostingAndStatus(posting, ParticipationStatus.APPROVED);
 
     if (currentApprovedUsers >= posting.getMaxCapacity()) {
-      throw new RuntimeException("해당 게시글의 최대 참여 인원을 초과했습니다.");
+      throw new DagachiException(ErrorCode.PARTICIPATION_MAX_CAPACITY_EXCEEDED);
     }
 
     participation.setStatus(ParticipationStatus.APPROVED);
-    participationRepository.save(participation);
 
-    if (currentApprovedUsers == posting.getMaxCapacity()) {
-      posting.setStatus(PostingStatus.COMPLETED);
-      postingRepository.save(posting);
+    if (currentApprovedUsers + 1 == posting.getMaxCapacity()) {
+      posting.setStatus(PostingStatus.RECRUITED);
     }
   }
 
@@ -170,19 +188,25 @@ public class ParticipationService {
     User author =
         userRepository
             .findById(authorId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     Participation participation =
         participationRepository
-            .findByIdForUpdate(participationId)
-            .orElseThrow(() -> new RuntimeException("해당 참여 정보를 찾을 수 없습니다."));
+            .findByIdWithPostingForUpdate(participationId)
+            .orElseThrow(() -> new DagachiException(ErrorCode.PARTICIPATION_NOT_FOUND));
 
-    Posting posting = participation.getPosting();
+    Posting posting =
+        postingRepository
+            .findByIdForUpdate(participation.getPosting().getId())
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     if (!posting.getAuthor().getId().equals(author.getId())) {
-      throw new RuntimeException("해당 게시글의 작성자가 아닙니다.");
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
 
     participation.setStatus(ParticipationStatus.REJECTED);
-    participationRepository.save(participation);
+
+    if (posting.getStatus().equals(PostingStatus.RECRUITED)) {
+      posting.setStatus(PostingStatus.RECRUITING);
+    }
   }
 }

@@ -4,6 +4,7 @@ import Button from '../components/Button'
 import Modal from '../components/Modal'
 import NavBar from '../components/NavBar'
 import { getPostingById, deletePosting, joinPosting, leavePosting, checkParticipation } from '../api/posting'
+import { getCurrentUser } from '../api/user'
 import { useToast } from '../hooks/useToast'
 import type { Posting } from '../types'
 import '../styles/common.css'
@@ -22,9 +23,11 @@ function PostingDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isAuthor, setIsAuthor] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [joining, setJoining] = useState(false)
-  const [isParticipating, setIsParticipating] = useState(false)
+  const [participationStatus, setParticipationStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | null>(null)
   const [checkingParticipation, setCheckingParticipation] = useState(false)
+  const [showAdminDeleteModal, setShowAdminDeleteModal] = useState(false)
 
   const fetchPosting = useCallback(async () => {
     const token = localStorage.getItem('token')
@@ -50,13 +53,27 @@ function PostingDetailPage() {
         // 작성자가 아니면 참가 여부 확인
         try {
           setCheckingParticipation(true)
-          const participating = await checkParticipation(Number(id))
-          setIsParticipating(participating)
+          const participation = await checkParticipation(Number(id))
+          if (participation.participationId === -1) {
+            setParticipationStatus(null)
+          } else {
+            setParticipationStatus(participation.status)
+          }
         } catch (checkErr) {
           console.error('참가 여부 확인 오류:', checkErr)
         } finally {
           setCheckingParticipation(false)
         }
+      }
+      
+      // 관리자 여부 확인
+      try {
+        const me = await getCurrentUser()
+        if (me.role === 'ADMIN') {
+          setIsAdmin(true)
+        }
+      } catch (adminErr) {
+        console.error('관리자 여부 확인 오류:', adminErr)
       }
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -119,7 +136,7 @@ function PostingDetailPage() {
     try {
       await joinPosting(Number(id))
       showToast('참가 신청이 완료되었습니다! 🎉', 'success')
-      setIsParticipating(true)
+      setParticipationStatus('PENDING')
       // 게시글 정보 새로고침 (참가자 수 업데이트 등을 위해)
       await fetchPosting()
     } catch (err: unknown) {
@@ -151,7 +168,7 @@ function PostingDetailPage() {
     try {
       await leavePosting(Number(id))
       showToast('참가가 취소되었습니다.', 'success')
-      setIsParticipating(false)
+      setParticipationStatus(null)
       // 게시글 정보 새로고침
       await fetchPosting()
     } catch (err: unknown) {
@@ -269,6 +286,36 @@ function PostingDetailPage() {
           </div>
         </Modal>
 
+        {/* 관리자 삭제 확인 모달 */}
+        <Modal
+          isOpen={showAdminDeleteModal}
+          onClose={() => setShowAdminDeleteModal(false)}
+          title="🛡️ 관리자 권한으로 삭제"
+        >
+          <p style={{ marginBottom: '20px', fontSize: '16px', lineHeight: '1.6' }}>
+            <strong>관리자 권한</strong>으로 이 게시글을 삭제하시겠습니까?<br />
+            삭제된 게시글은 복구할 수 없습니다.
+          </p>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowAdminDeleteModal(false)}
+              style={{ flex: 1 }}
+              disabled={deleting}
+            >
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDelete}
+              style={{ flex: 1, backgroundColor: '#dc2626' }}
+              disabled={deleting}
+            >
+              {deleting ? '삭제 중...' : '관리자 삭제'}
+            </Button>
+          </div>
+        </Modal>
+
       <div className="link-group">
         <button onClick={() => navigate('/postings')} className="btn btn-primary">
           ← 목록으로 돌아가기
@@ -339,20 +386,46 @@ function PostingDetailPage() {
             목록으로
           </Button>
         </div> 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           {!isAuthor && (
             <>
-              {isParticipating ? (
+              {participationStatus === 'APPROVED' ? (
+                <span
+                  style={{
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    fontSize: '16px'
+                  }}
+                >
+                  ✅ 승인됨
+                </span>
+              ) : participationStatus === 'REJECTED' ? (
+                <span
+                  style={{
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    fontSize: '16px'
+                  }}
+                >
+                  ❌ 거절됨
+                </span>
+              ) : participationStatus === 'PENDING' ? (
                 <Button 
                   onClick={handleLeave} 
                   variant="primary"
                   disabled={joining || checkingParticipation}
                   style={{ 
-                    backgroundColor: '#ef4444',
+                    backgroundColor: '#f59e0b',
                     cursor: 'pointer'
                   }}
                 >
-                  {joining ? '취소 중...' : '❌ 참가 취소'}
+                  {joining ? '취소 중...' : '⏳ 승인 대기 중 (취소하기)'}
                 </Button>
               ) : (
                 <Button 
@@ -392,6 +465,16 @@ function PostingDetailPage() {
                 삭제
               </Button>
             </>
+          )}
+          {/* 관리자 삭제 버튼 - 작성자가 아닌 관리자에게만 표시 */}
+          {isAdmin && !isAuthor && (
+            <Button 
+              onClick={() => setShowAdminDeleteModal(true)} 
+              variant="primary"
+              style={{ backgroundColor: '#dc2626' }}
+            >
+              🛡️ 관리자 삭제
+            </Button>
           )}
         </div>
       </div>

@@ -308,9 +308,18 @@ function MyInfoPage() {
           </div>
             
           <div style={{ marginTop: '40px', textAlign: 'center' }}>
-            <Button onClick={() => navigate('/postings/create')} variant="primary">
+            <Button onClick={() => navigate('/postings/create')} variant="primary" style={{ marginRight: '10px' }}>
               새 게시글 작성하기
             </Button>
+            {user.role === 'ADMIN' && (
+            <>
+              <div style={{ marginTop: '10px' }}></div>
+
+              <Button onClick={() => navigate('/admin/users')} variant="secondary">
+                관리자 페이지
+              </Button>
+            </>
+            )}
           </div>
         </div>
       </div>

@@ -9,6 +9,14 @@ group = 'com.gwtt'
 version = '0.0.1-SNAPSHOT'
 description = 'dagachi web service backend'
 
+bootJar {
+	enabled = true
+}
+
+jar {
+	enabled = false
+}
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
@@ -62,7 +70,7 @@ tasks.named('build') {
 
 spotless {
 	java {
-		target('src/main/java/**/*.java')
+		target('src/main/java/**/*.java', 'src/test/java/**/*.java')
 		googleJavaFormat()
 		// formatAnnotations()
 		removeUnusedImports()

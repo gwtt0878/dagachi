@@ -43,11 +43,7 @@ public class PostingController {
 
   @GetMapping("/{id}")
   public ResponseEntity<PostingResponseDto> getPostingById(@PathVariable @NotNull Long id) {
-    try {
-      return ResponseEntity.ok(postingService.getPostingById(id));
-    } catch (RuntimeException e) {
-      return ResponseEntity.notFound().build();
-    }
+    return ResponseEntity.ok(postingService.getPostingById(id));
   }
 
   @PostMapping
@@ -55,11 +51,7 @@ public class PostingController {
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestBody @Valid PostingCreateRequestDto postingRequestDto) {
     Long currentUserId = userDetails.getUserId();
-    try {
-      return ResponseEntity.ok(postingService.createPosting(currentUserId, postingRequestDto));
-    } catch (RuntimeException e) {
-      return ResponseEntity.badRequest().body(null);
-    }
+    return ResponseEntity.ok(postingService.createPosting(currentUserId, postingRequestDto));
   }
 
   @PutMapping("/{id}")
@@ -68,25 +60,17 @@ public class PostingController {
       @PathVariable @NotNull Long id,
       @RequestBody @Valid PostingUpdateRequestDto postingUpdateRequestDto) {
     Long currentUserId = userDetails.getUserId();
-    try {
-      PostingResponseDto updatedPosting =
-          postingService.updatePosting(id, currentUserId, postingUpdateRequestDto);
-      return ResponseEntity.ok(updatedPosting);
-    } catch (RuntimeException e) {
-      return ResponseEntity.badRequest().body(null);
-    }
+    PostingResponseDto updatedPosting =
+        postingService.updatePosting(id, currentUserId, postingUpdateRequestDto);
+    return ResponseEntity.ok(updatedPosting);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deletePosting(
       @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable @NotNull Long id) {
-    try {
-      Long currentUserId = userDetails.getUserId();
-      postingService.deletePosting(id, currentUserId);
-      return ResponseEntity.noContent().build();
-    } catch (RuntimeException e) {
-      return ResponseEntity.notFound().build();
-    }
+    Long currentUserId = userDetails.getUserId();
+    postingService.deletePosting(id, currentUserId);
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/search")

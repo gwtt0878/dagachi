@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import NavBar from '../components/NavBar'
-import { getPostingById, getParticipations, approveParticipation, rejectParticipation } from '../api/posting'
+import { getPostingById, getParticipations, approveParticipation, rejectParticipation, cancelApproval } from '../api/posting'
 import { useToast } from '../hooks/useToast'
 import type { Posting, Participation } from '../types'
 import { AxiosError } from 'axios'
@@ -99,6 +99,26 @@ function ParticipationManagePage() {
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         showToast('거절에 실패했습니다.', 'error')
+      }
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  const handleCancelApproval = async (participationId: number) => {
+    if (!id || processingId) return
+
+    const confirmed = window.confirm('정말로 이 참가자의 승인을 취소하시겠습니까?')
+    if (!confirmed) return
+
+    setProcessingId(participationId)
+    try {
+      await cancelApproval(Number(id), participationId)
+      showToast('참가자 승인을 취소했습니다.', 'success')
+      await fetchData()
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        showToast('승인 취소에 실패했습니다.', 'error')
       }
     } finally {
       setProcessingId(null)
@@ -297,17 +317,31 @@ function ParticipationManagePage() {
                         })}
                       </div>
                     </div>
-                    <span
-                      style={{
-                        ...getStatusBadgeStyle('APPROVED'),
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      {getStatusText('APPROVED')}
-                    </span>
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', minWidth: '200px' }}>
+                      <span
+                        style={{
+                          ...getStatusBadgeStyle('APPROVED'),
+                          padding: '8px 16px',
+                          borderRadius: '20px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {getStatusText('APPROVED')}
+                      </span>
+                      <Button
+                        onClick={() => handleCancelApproval(participation.participationId)}
+                        variant="primary"
+                        disabled={processingId !== null}
+                        style={{ 
+                          backgroundColor: '#ef4444',
+                          maxWidth: '120px',
+                          minWidth: '120px'
+                        }}
+                      >
+                        {processingId === participation.participationId ? '처리 중...' : '승인 취소'}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import UserPage from './pages/UserPage'
 import MyInfoPage from './pages/MyInfoPage'
+import AdminUsersPage from './pages/AdminUsersPage'
 import './App.css'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/users/me" element={<MyInfoPage />} />
         <Route path="/users/:id" element={<UserPage />} />
+        <Route path="/admin/users" element={<AdminUsersPage />} />
       </Routes>
     </Router>
   )

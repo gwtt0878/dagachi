@@ -12,6 +12,17 @@ export const getCurrentUser = async (): Promise<User> => {
   return response.data
 }
 
+// 관리자: 사용자 목록 조회 (페이징)
+export const getAdminUsers = async (page: number = 0): Promise<PageResponse<User>> => {
+  const response = await api.get<PageResponse<User>>(`/api/admin/users?page=${page}`)
+  return response.data
+}
+
+// 관리자: 사용자 권한 변경
+export const updateUserRole = async (userId: number, role: 'USER' | 'ADMIN'): Promise<void> => {
+  await api.put(`/api/admin/users/${userId}/role`, role)
+}
+
 // 사용자가 작성한 게시글 조회 (페이징)
 export const getAuthoredPostings = async (userId: number, page: number = 0): Promise<PageResponse<PostingSimple>> => {
   const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/authored?page=${page}`)

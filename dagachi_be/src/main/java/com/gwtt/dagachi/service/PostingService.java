@@ -8,6 +8,8 @@ import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
 import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import java.util.List;
@@ -36,7 +38,7 @@ public class PostingService {
     Posting posting =
         postingRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     return PostingResponseDto.of(posting);
   }
 
@@ -46,7 +48,7 @@ public class PostingService {
     User user =
         userRepository
             .findById(authorId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
 
     Posting posting =
         Posting.builder()
@@ -68,11 +70,10 @@ public class PostingService {
     Posting posting =
         postingRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     checkAuthorization(posting, currentUserId);
     posting.update(postingUpdateRequestDto);
-    Posting updatedPosting = postingRepository.save(posting);
-    return PostingResponseDto.of(updatedPosting);
+    return PostingResponseDto.of(posting);
   }
 
   @Transactional
@@ -80,7 +81,7 @@ public class PostingService {
     Posting posting =
         postingRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     checkAuthorization(posting, currentUserId);
     postingRepository.delete(posting);
   }
@@ -95,14 +96,14 @@ public class PostingService {
     User currentUser =
         userRepository
             .findById(currentUserId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
 
     if (currentUser.getRole().equals(Role.ADMIN)) {
       return;
     }
 
     if (!posting.getAuthor().getId().equals(currentUser.getId())) {
-      throw new RuntimeException("해당 게시글의 수정/삭제 권한이 없습니다.");
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
   }
 }

@@ -2,6 +2,8 @@ package com.gwtt.dagachi.service;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.gwtt.dagachi.config.SecurityConfig;
+import com.gwtt.dagachi.config.TestQueryDSLConfig;
 import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingType;
 import com.gwtt.dagachi.constants.Role;
@@ -20,16 +22,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.gwtt.dagachi.config.TestQueryDSLConfig;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import; 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import com.gwtt.dagachi.config.JpaAuditingConfig;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Import({TestQueryDSLConfig.class, JpaAuditingConfig.class})
+@Import({TestQueryDSLConfig.class, SecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("ParticipationService 동시성 테스트")
 class ParticipationConcurrencyTest {
@@ -72,9 +72,9 @@ class ParticipationConcurrencyTest {
             .build();
     posting = postingRepository.save(posting);
 
-    // 참가자 10명 생성
+    // 참가자 1000명 생성
     participants = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1000; i++) {
       User user =
           User.builder()
               .username("user" + i)
@@ -153,16 +153,17 @@ class ParticipationConcurrencyTest {
   @Test
   @DisplayName("여러 참가자를 동시에 승인해도 최대 인원을 초과하지 않는다")
   void concurrentApproveMultipleUsers() throws InterruptedException {
-    // given - 미리 10명 참가 신청 (최대 5명)
-    for (int i = 0; i < 10; i++) {
+    // given - 미리 10000명 참가 신청
+    for (int i = 0; i < 1000; i++) {
       participationService.joinPosting(participants.get(i).getId(), posting.getId());
     }
-    List<Participation> allParticipations = participationRepository.findByPostingId(posting.getId());
-    assertThat(allParticipations).hasSize(10); // 10명 모두 참가 성공
+    List<Participation> allParticipations =
+        participationRepository.findByPostingId(posting.getId());
+    assertThat(allParticipations).hasSize(1000); // 1000명 모두 참가 성공
 
     // when - 5명을 동시에 승인
-    ExecutorService executorService = Executors.newFixedThreadPool(5);
-    CountDownLatch latch = new CountDownLatch(5);
+    ExecutorService executorService = Executors.newFixedThreadPool(1000);
+    CountDownLatch latch = new CountDownLatch(1000);
     AtomicInteger approveSuccessCount = new AtomicInteger(0);
 
     for (Participation p : allParticipations) {
@@ -189,4 +190,3 @@ class ParticipationConcurrencyTest {
     assertThat(approvedCount).isEqualTo(approveSuccessCount.get());
   }
 }
-

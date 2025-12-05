@@ -62,7 +62,7 @@ function PostingEditPage() {
           description: data.description,
           maxCapacity: data.maxCapacity,
           type: data.type as 'PROJECT' | 'STUDY',
-          status: data.status as 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'
+          status: data.status as 'RECRUITING' | 'RECRUITED' | 'COMPLETED'
         })
       } catch (err: unknown) {
         if (err instanceof AxiosError) {
@@ -106,7 +106,7 @@ function PostingEditPage() {
     }))
   }
 
-  const handleStatusChange = (status: 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED') => {
+  const handleStatusChange = (status: 'RECRUITING' | 'RECRUITED' | 'COMPLETED') => {
     setFormData(prev => ({
       ...prev,
       status
@@ -266,10 +266,11 @@ function PostingEditPage() {
                 </button>
                 <button
                   type="button"
-                  className={`type-button ${formData.status === 'IN_PROGRESS' ? 'active study' : ''}`}
-                  onClick={() => handleStatusChange('IN_PROGRESS')}
+                  className={`type-button ${formData.status === 'RECRUITED' ? 'active' : ''}`}
+                  onClick={() => handleStatusChange('RECRUITED')}
+                  style={formData.status === 'RECRUITED' ? { backgroundColor: '#FF9800', borderColor: '#FF9800' } : {}}
                 >
-                  진행중
+                  모집완료
                 </button>
                 <button
                   type="button"
@@ -277,7 +278,7 @@ function PostingEditPage() {
                   onClick={() => handleStatusChange('COMPLETED')}
                   style={formData.status === 'COMPLETED' ? { backgroundColor: '#888', borderColor: '#888' } : {}}
                 >
-                  완료
+                  종료
                 </button>
               </div>
             </div>
