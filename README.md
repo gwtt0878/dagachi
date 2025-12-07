@@ -63,11 +63,11 @@ dagachi/
 └── docker-compose.yml   # Docker Compose 설정
 ```
 
-## ⚙️ 환경변수 설정
 
 FE: `./dagachi_fe/.env.production`
 
 
+## ⚙️ 환경변수 설정
 BE: `./.env.fe`
 
 ## 📄 라이선스
