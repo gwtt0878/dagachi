@@ -6,6 +6,7 @@ import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSearchCondition;
 import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
 import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
+import com.gwtt.dagachi.entity.Location;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
 import com.gwtt.dagachi.exception.DagachiException;
@@ -57,6 +58,8 @@ public class PostingService {
             .type(postingRequestDto.getType())
             .maxCapacity(postingRequestDto.getMaxCapacity())
             .author(user)
+            .location(
+                Location.of(postingRequestDto.getLatitude(), postingRequestDto.getLongitude()))
             .build();
 
     Posting savedPosting = postingRepository.save(posting);

@@ -6,6 +6,8 @@ export interface CreatePostingRequest {
   description: string
   maxCapacity: number
   type: 'PROJECT' | 'STUDY'
+  latitude: number
+  longitude: number
 }
 
 export interface UpdatePostingRequest {
@@ -14,6 +16,8 @@ export interface UpdatePostingRequest {
   maxCapacity: number
   type: 'PROJECT' | 'STUDY'
   status: 'RECRUITING' | 'RECRUITED' | 'COMPLETED'
+  latitude: number
+  longitude: number
 }
 
 export interface SearchPostingParams {

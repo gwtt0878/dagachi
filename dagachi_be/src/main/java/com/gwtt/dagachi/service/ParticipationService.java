@@ -4,7 +4,6 @@ import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingStatus;
 import com.gwtt.dagachi.dto.ParticipationResponseDto;
 import com.gwtt.dagachi.dto.ParticipationSimpleResponseDto;
-import java.time.LocalDateTime;
 import com.gwtt.dagachi.entity.Participation;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
@@ -13,6 +12,7 @@ import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.ParticipationRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,9 +37,7 @@ public class ParticipationService {
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     Participation participation =
-        participationRepository
-            .findByParticipantAndPosting(user, posting)
-            .orElse(null);
+        participationRepository.findByParticipantAndPosting(user, posting).orElse(null);
 
     // 참가하지 않은 경우 -1 반환
     if (participation == null) {

@@ -34,4 +34,10 @@ public class PostingUpdateRequestDto {
   @NotNull(message = "게시글 상태는 필수 입력 항목입니다.")
   @Enumerated(EnumType.STRING)
   private PostingStatus status;
+
+  @NotNull(message = "장소는 필수 입력 항목입니다.")
+  private double latitude;
+
+  @NotNull(message = "장소는 필수 입력 항목입니다.")
+  private double longitude;
 }

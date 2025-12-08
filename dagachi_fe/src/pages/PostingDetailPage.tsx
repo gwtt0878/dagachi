@@ -11,6 +11,7 @@ import '../styles/common.css'
 import { AxiosError } from 'axios'
 import { getCurrentNickname } from '../api/auth'
 import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
+import NaverMap from '../components/NaverMap'
 
 function PostingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -379,6 +380,11 @@ function PostingDetailPage() {
           <div className="posting-description">
             {posting.description}
           </div>
+        </div>
+
+        <div className="posting-detail-content">
+          <h2>위치</h2>
+          <NaverMap withInteraction={false} latitude={posting.latitude} longitude={posting.longitude} />
         </div>
 
         <div className="posting-detail-actions">

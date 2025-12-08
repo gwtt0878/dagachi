@@ -7,6 +7,8 @@ export interface Posting {
   maxCapacity: number
   createdAt: string
   updatedAt: string
+  latitude: number
+  longitude: number
   authorId: number
   authorNickname: string
 }

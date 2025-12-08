@@ -20,6 +20,8 @@ public class PostingResponseDto {
   private LocalDateTime updatedAt;
   private Long authorId;
   private String authorNickname;
+  private double latitude;
+  private double longitude;
 
   public static PostingResponseDto of(Posting posting) {
     return PostingResponseDto.builder()
@@ -33,6 +35,8 @@ public class PostingResponseDto {
         .updatedAt(posting.getUpdatedAt())
         .authorId(posting.getAuthor().getId())
         .authorNickname(posting.getAuthor().getNickname())
+        .latitude(posting.getLocation().getLatitude())
+        .longitude(posting.getLocation().getLongitude())
         .build();
   }
 }
