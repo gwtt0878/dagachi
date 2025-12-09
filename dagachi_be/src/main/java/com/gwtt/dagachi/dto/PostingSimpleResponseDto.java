@@ -17,6 +17,8 @@ public class PostingSimpleResponseDto {
   private int maxCapacity;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+  private Double latitude;
+  private Double longitude;
   private Long authorId;
   private String authorNickname;
 
@@ -29,6 +31,8 @@ public class PostingSimpleResponseDto {
         .maxCapacity(posting.getMaxCapacity())
         .createdAt(posting.getCreatedAt())
         .updatedAt(posting.getUpdatedAt())
+        .latitude(posting.getLocation().getLatitude())
+        .longitude(posting.getLocation().getLongitude())
         .authorId(posting.getAuthor().getId())
         .authorNickname(posting.getAuthor().getNickname())
         .build();

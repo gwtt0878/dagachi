@@ -1,8 +1,6 @@
 package com.gwtt.dagachi.controller;
 
 import com.gwtt.dagachi.adapter.CustomUserDetails;
-import com.gwtt.dagachi.constants.PostingStatus;
-import com.gwtt.dagachi.constants.PostingType;
 import com.gwtt.dagachi.dto.PostingCreateRequestDto;
 import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSearchCondition;
@@ -25,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -73,21 +70,11 @@ public class PostingController {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/search")
+  @PostMapping("/search")
   public ResponseEntity<Page<PostingSimpleResponseDto>> searchPostings(
-      @RequestParam(required = false) String title,
-      @RequestParam(required = false) PostingType type,
-      @RequestParam(required = false) PostingStatus status,
-      @RequestParam(required = false) String authorNickname,
+      @RequestBody PostingSearchCondition condition,
       @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
-    PostingSearchCondition condition =
-        PostingSearchCondition.builder()
-            .title(title)
-            .type(type)
-            .status(status)
-            .authorNickname(authorNickname)
-            .build();
     return ResponseEntity.ok(postingService.searchPostings(condition, pageable));
   }
 }

@@ -12,18 +12,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Location {
   @Column(precision = 8)
-  private double latitude;
+  private Double latitude;
 
   @Column(precision = 8)
-  private double longitude;
+  private Double longitude;
 
   @Builder
-  public Location(double latitude, double longitude) {
+  public Location(Double latitude, Double longitude) {
     this.latitude = latitude;
     this.longitude = longitude;
   }
 
-  public static Location of(double latitude, double longitude) {
+  public static Location of(Double latitude, Double longitude) {
     return Location.builder().latitude(latitude).longitude(longitude).build();
   }
 }

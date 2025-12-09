@@ -20,8 +20,8 @@ public class PostingResponseDto {
   private LocalDateTime updatedAt;
   private Long authorId;
   private String authorNickname;
-  private double latitude;
-  private double longitude;
+  private Double latitude;
+  private Double longitude;
 
   public static PostingResponseDto of(Posting posting) {
     return PostingResponseDto.builder()

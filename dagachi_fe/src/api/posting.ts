@@ -1,5 +1,5 @@
 import api from './auth'
-import type { Posting, Participation, ParticipationSimple, PageResponse } from '../types'
+import type { Posting, Participation, ParticipationSimple, PageResponse, PostingSimple } from '../types'
 
 export interface CreatePostingRequest {
   title: string
@@ -26,25 +26,36 @@ export interface SearchPostingParams {
   status?: 'RECRUITING' | 'RECRUITED' | 'COMPLETED' | ''
   authorNickname?: string
   page?: number
+  // 거리순 정렬을 위한 파라미터
+  userLatitude?: number
+  userLongitude?: number
+  sortByDistance?: boolean
 }
 
 // 모든 포스팅 목록 조회 (페이징)
-export const getAllPostings = async (page: number = 0): Promise<PageResponse<Posting>> => {
-  const response = await api.get<PageResponse<Posting>>(`/api/postings?page=${page}`)
+export const getAllPostings = async (page: number = 0): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/postings?page=${page}`)
   return response.data
 }
 
 // 포스팅 검색 (페이징)
-export const searchPostings = async (params: SearchPostingParams): Promise<PageResponse<Posting>> => {
+export const searchPostings = async (params: SearchPostingParams): Promise<PageResponse<PostingSimple>> => {
+  // 페이지 정보는 query parameter로 유지
   const queryParams = new URLSearchParams()
-  
-  if (params.title) queryParams.append('title', params.title)
-  if (params.type) queryParams.append('type', params.type)
-  if (params.status) queryParams.append('status', params.status)
-  if (params.authorNickname) queryParams.append('authorNickname', params.authorNickname)
   queryParams.append('page', String(params.page || 0))
   
-  const response = await api.get<PageResponse<Posting>>(`/api/postings/search?${queryParams.toString()}`)
+  // 검색 조건은 request body로 전송
+  const searchBody = {
+    title: params.title || undefined,
+    type: params.type || undefined,
+    status: params.status || undefined,
+    authorNickname: params.authorNickname || undefined,
+    userLatitude: params.userLatitude,
+    userLongitude: params.userLongitude,
+    sortByDistance: params.sortByDistance || false
+  }
+  
+  const response = await api.post<PageResponse<PostingSimple>>(`/api/postings/search?${queryParams.toString()}`, searchBody)
   return response.data
 }
 

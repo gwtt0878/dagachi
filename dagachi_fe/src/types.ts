@@ -18,8 +18,11 @@ export interface PostingSimple {
   title: string
   type: string
   status: string
+  latitude: number
+  longitude: number
   maxCapacity: number
   createdAt: string
+  updatedAt: string
   authorNickname: string
 }
 

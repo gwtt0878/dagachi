@@ -36,8 +36,8 @@ public class PostingUpdateRequestDto {
   private PostingStatus status;
 
   @NotNull(message = "장소는 필수 입력 항목입니다.")
-  private double latitude;
+  private Double latitude;
 
   @NotNull(message = "장소는 필수 입력 항목입니다.")
-  private double longitude;
+  private Double longitude;
 }
