@@ -8,7 +8,27 @@ export interface LocationError {
   message: string
 }
 
-// 사용자의 현재 위치를 가져오는 함수
+const getErrorReject = (error: GeolocationPositionError): LocationError => {
+  let message = '위치 정보를 가져올 수 없습니다.'
+        
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      message = '위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 정보 접근을 허용해주세요.'
+      break
+    case error.POSITION_UNAVAILABLE:
+      message = '위치 정보를 사용할 수 없습니다.'
+      break
+    case error.TIMEOUT:
+      message = '위치 정보 요청 시간이 초과되었습니다.'
+      break
+  }
+
+  return {
+    code: error.code,
+    message
+  }
+}
+
 export const getCurrentLocation = (): Promise<UserLocation> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -21,8 +41,8 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 300000 // 5분간 캐시된 위치 정보 사용
+      timeout: 3000,
+      maximumAge: 60000
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -33,24 +53,23 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
         })
       },
       (error) => {
-        let message = '위치 정보를 가져올 수 없습니다.'
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            message = '위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 정보 접근을 허용해주세요.'
-            break
-          case error.POSITION_UNAVAILABLE:
-            message = '위치 정보를 사용할 수 없습니다.'
-            break
-          case error.TIMEOUT:
-            message = '위치 정보 요청 시간이 초과되었습니다.'
-            break
+        if (error.code === error.TIMEOUT) { // 타임 아웃시 낮은 정확도로 다시 시도
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              })
+            },
+            (error) => {
+              reject(getErrorReject(error))
+            },
+            {...options, enableHighAccuracy: false}
+          )
         }
-        
-        reject({
-          code: error.code,
-          message
-        })
+        reject(
+          getErrorReject(error)
+        )
       },
       options
     )

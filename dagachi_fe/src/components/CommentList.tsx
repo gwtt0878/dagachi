@@ -45,8 +45,6 @@ function CommentList({ postingId }: CommentListProps) {
       const flatComments = await getComments(postingId)
       const treeComments = buildCommentTree(flatComments)
       setComments(treeComments)
-      console.log(treeComments)
-      console.log(flatComments)
     } catch (error) {
       console.error('댓글 로드 실패:', error)
       showToast('댓글을 불러오는데 실패했습니다.', 'error')

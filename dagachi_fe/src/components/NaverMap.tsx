@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { getCurrentLocation } from '../utils/location'
 
 declare global {
   interface Window {
@@ -16,31 +17,23 @@ interface MapProps {
 function NaverMap(Props: MapProps) {
   const clientId = import.meta.env.VITE_NCP_CLIENT_ID;
 
-  if (!clientId) {
-    console.error('NCP Client ID is not set');
-    return;
-  }
-
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [centerLat, setCenterLat] = useState<number | null>(null)
   const [centerLng, setCenterLng] = useState<number | null>(null)
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setCenterLat(position.coords.latitude);
-        setCenterLng(position.coords.longitude);
-      }, (error) => {
-        console.error(error);
-        if (centerLat === null && centerLng === null) {
-          setCenterLat(37.3595704);
-          setCenterLng(127.105399);
-        }
-      }, {
-        timeout: 5000,
-        maximumAge: 0,
-        enableHighAccuracy: true,
-      });
+    getCurrentLocation().then((location) => {
+      setCenterLat(location.latitude);
+      setCenterLng(location.longitude);
+    }).catch((error) => {
+      console.error(error);
+      setCenterLat(37.3595704);
+      setCenterLng(127.105399);
+    });
+
+    if (!clientId) {
+      console.error('NCP Client ID is not set');
+      return;
     }
 
     if (window.naver) return;
