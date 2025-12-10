@@ -12,6 +12,7 @@ import { AxiosError } from 'axios'
 import { getCurrentNickname } from '../api/auth'
 import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
 import NaverMap from '../components/NaverMap'
+import CommentList from '../components/CommentList'
 
 function PostingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -483,6 +484,9 @@ function PostingDetailPage() {
             </Button>
           )}
         </div>
+
+        {/* 댓글 섹션 */}
+        <CommentList postingId={Number(id)} />
       </div>
     </div>
     </>

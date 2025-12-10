@@ -66,6 +66,9 @@ public class Posting extends BaseTimeEntity {
   @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = false)
   private List<Participation> participations = new ArrayList<>();
 
+  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = false)
+  private List<Comment> comments = new ArrayList<>();
+
   @Embedded private Location location;
 
   private LocalDateTime deletedAt;

@@ -64,3 +64,25 @@ export interface PageResponse<T> {
   numberOfElements: number
   empty: boolean
 }
+
+export interface Comment {
+  id: number
+  parentCommentId: number | null
+  authorId: number
+  content: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  authorNickname: string
+  depth: number
+  replies?: Comment[] // 트리 구조를 위한 필드
+}
+
+export interface CommentCreateRequest {
+  content: string
+  parentCommentId?: number | null
+}
+
+export interface CommentUpdateRequest {
+  content: string
+}
