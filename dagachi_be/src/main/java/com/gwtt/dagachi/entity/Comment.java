@@ -67,8 +67,4 @@ public class Comment extends BaseTimeEntity {
   public void delete() {
     this.deletedAt = LocalDateTime.now();
   }
-
-  public void deletedContent() {
-    this.content = "[삭제된 댓글입니다.]";
-  }
 }

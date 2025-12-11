@@ -73,14 +73,14 @@ public class ParticipationService {
   public List<ParticipationResponseDto> getParticipationsByPostingId(Long userId, Long postingId) {
     Posting posting =
         postingRepository
-            .findById(postingId)
+            .findByIdFetched(postingId)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     if (!posting.getAuthor().getId().equals(userId)) {
       throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
 
-    List<Participation> participations = participationRepository.findByPostingId(postingId);
+    List<Participation> participations = participationRepository.findByPostingFetched(posting);
     return participations.stream().map(ParticipationResponseDto::of).toList();
   }
 

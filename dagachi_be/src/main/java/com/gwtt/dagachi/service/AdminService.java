@@ -21,7 +21,7 @@ public class AdminService {
   public void updateUserRole(Long userId, Role role) {
     User user =
         userRepository
-            .findById(userId)
+            .findByIdForUpdate(userId)
             .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     user.updateRole(role);
   }

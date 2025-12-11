@@ -29,7 +29,7 @@ public class CommentService {
         postingRepository
             .findById(postingId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    List<Comment> comments = commentRepository.findByPosting(posting);
+    List<Comment> comments = commentRepository.findByPostingFetched(posting);
     return comments.stream().map(CommentResponseDto::of).toList();
   }
 
@@ -37,7 +37,7 @@ public class CommentService {
   public CommentResponseDto getCommentById(Long commentId) {
     Comment comment =
         commentRepository
-            .findById(commentId)
+            .findByIdFetched(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
     return CommentResponseDto.of(comment);
   }
@@ -60,10 +60,13 @@ public class CommentService {
     if (commentCreateRequestDto.getParentCommentId() != null) {
       parentComment =
           commentRepository
-              .findById(commentCreateRequestDto.getParentCommentId())
+              .findByIdForUpdate(commentCreateRequestDto.getParentCommentId())
               .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
+      if (parentComment.getDeletedAt() != null) {
+        throw new DagachiException(ErrorCode.COMMENT_ALREADY_DELETED);
+      }
       if (!parentComment.getPosting().getId().equals(postingId)) {
-        throw new DagachiException(ErrorCode.COMMENT_NOT_FOUND);
+        throw new DagachiException(ErrorCode.COMMENT_POSTING_NOT_MATCHED);
       }
       depth = parentComment.getDepth() + 1;
     }
@@ -78,7 +81,11 @@ public class CommentService {
             .build();
 
     Comment savedComment = commentRepository.save(comment);
-    return CommentResponseDto.of(savedComment);
+    Comment fetchedComment =
+        commentRepository
+            .findByIdFetched(savedComment.getId())
+            .orElseThrow(() -> new DagachiException(ErrorCode.INTERNAL_SERVER_ERROR));
+    return CommentResponseDto.of(fetchedComment);
   }
 
   @Transactional
@@ -86,27 +93,28 @@ public class CommentService {
       Long commentId, Long userId, CommentUpdateRequestDto commentUpdateRequestDto) {
     Comment comment =
         commentRepository
-            .findById(commentId)
+            .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
     if (!comment.getAuthor().getId().equals(userId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);
     }
+    if (comment.getDeletedAt() != null) {
+      throw new DagachiException(ErrorCode.COMMENT_ALREADY_DELETED);
+    }
 
     comment.updateContent(commentUpdateRequestDto.getContent());
-    Comment savedComment = commentRepository.save(comment);
-    return CommentResponseDto.of(savedComment);
+    return CommentResponseDto.of(comment);
   }
 
   @Transactional
   public void deleteComment(Long commentId, Long userId) {
     Comment comment =
         commentRepository
-            .findById(commentId)
+            .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
     if (!comment.getAuthor().getId().equals(userId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);
     }
     comment.delete();
-    commentRepository.save(comment);
   }
 }

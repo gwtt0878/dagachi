@@ -66,6 +66,8 @@ public class PostingRepositoryImpl implements PostingRepositoryCustom {
     if (condition.getAuthorNickname() != null) {
       builder.and(posting.author.nickname.contains(condition.getAuthorNickname()));
     }
+
+    builder.and(posting.deletedAt.isNull());
     return builder;
   }
 

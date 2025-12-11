@@ -13,7 +13,6 @@ import com.gwtt.dagachi.exception.DagachiException;
 import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,19 +25,15 @@ public class PostingService {
   private final PostingRepository postingRepository;
   private final UserRepository userRepository;
 
-  public List<PostingSimpleResponseDto> getAllPostings() {
-    return postingRepository.findAll().stream().map(PostingSimpleResponseDto::of).toList();
-  }
-
   public Page<PostingSimpleResponseDto> getPostings(Pageable pageable) {
-    Page<Posting> postings = postingRepository.findAll(pageable);
+    Page<Posting> postings = postingRepository.findAllFetched(pageable);
     return postings.map(PostingSimpleResponseDto::of);
   }
 
   public PostingResponseDto getPostingById(Long id) {
     Posting posting =
         postingRepository
-            .findById(id)
+            .findByIdFetched(id)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     return PostingResponseDto.of(posting);
   }
@@ -63,8 +58,11 @@ public class PostingService {
             .build();
 
     Posting savedPosting = postingRepository.save(posting);
-
-    return PostingResponseDto.of(savedPosting);
+    Posting fetchedPosting =
+        postingRepository
+            .findByIdFetched(savedPosting.getId())
+            .orElseThrow(() -> new DagachiException(ErrorCode.INTERNAL_SERVER_ERROR));
+    return PostingResponseDto.of(fetchedPosting);
   }
 
   @Transactional
@@ -72,7 +70,7 @@ public class PostingService {
       Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
     Posting posting =
         postingRepository
-            .findById(id)
+            .findByIdForUpdate(id)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     checkAuthorization(posting, currentUserId);
     posting.update(postingUpdateRequestDto);
@@ -83,7 +81,7 @@ public class PostingService {
   public void deletePosting(Long id, Long currentUserId) {
     Posting posting =
         postingRepository
-            .findById(id)
+            .findByIdForUpdate(id)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     checkAuthorization(posting, currentUserId);
     postingRepository.delete(posting);
