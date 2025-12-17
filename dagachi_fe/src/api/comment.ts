@@ -1,9 +1,15 @@
 import api from './auth'
-import type { Comment, CommentCreateRequest, CommentUpdateRequest } from '../types'
+import type { Comment, CommentCreateRequest, CommentUpdateRequest, PageResponse } from '../types'
 
-// 댓글 목록 조회
-export const getComments = async (postingId: number): Promise<Comment[]> => {
-  const response = await api.get<Comment[]>(`/api/postings/${postingId}/comment`)
+// 댓글 목록 조회 (페이징)
+export const getComments = async (
+  postingId: number,
+  page: number = 0,
+  size: number = 5
+): Promise<PageResponse<Comment>> => {
+  const response = await api.get<PageResponse<Comment>>(
+    `/api/postings/${postingId}/comment?page=${page}&size=${size}&sort=createdAt,asc`
+  )
   return response.data
 }
 

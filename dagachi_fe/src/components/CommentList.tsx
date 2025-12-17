@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getComments, createComment, updateComment, deleteComment } from '../api/comment'
 import { buildCommentTree, formatCommentDate } from '../utils/commentUtils'
 import { getCurrentUser } from '../api/user'
-import type { Comment, CommentCreateRequest, CommentUpdateRequest } from '../types'
+import type { Comment, CommentCreateRequest, CommentUpdateRequest, PageResponse } from '../types'
 import { useToast } from '../hooks/useToast'
 import Button from './Button'
 import '../styles/comment.css'
@@ -23,11 +23,13 @@ function CommentList({ postingId }: CommentListProps) {
   const [replyContent, setReplyContent] = useState('')
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [page, setPage] = useState(0)
+  const [pageInfo, setPageInfo] = useState<PageResponse<Comment> | null>(null)
 
   useEffect(() => {
     loadComments()
     loadCurrentUser()
-  }, [postingId])
+  }, [postingId, page])
 
   const loadCurrentUser = async () => {
     try {
@@ -42,8 +44,9 @@ function CommentList({ postingId }: CommentListProps) {
   const loadComments = async () => {
     try {
       setLoading(true)
-      const flatComments = await getComments(postingId)
-      const treeComments = buildCommentTree(flatComments)
+      const pageResponse = await getComments(postingId, page, 5)
+      setPageInfo(pageResponse)
+      const treeComments = buildCommentTree(pageResponse.content)
       setComments(treeComments)
     } catch (error) {
       console.error('댓글 로드 실패:', error)
@@ -63,6 +66,7 @@ function CommentList({ postingId }: CommentListProps) {
       const data: CommentCreateRequest = { content: newComment.trim() }
       await createComment(postingId, data)
       setNewComment('')
+      setPage(0) // 첫 페이지로 이동
       showToast('댓글이 작성되었습니다.', 'success')
       await loadComments()
     } catch (error: unknown) {
@@ -90,6 +94,7 @@ function CommentList({ postingId }: CommentListProps) {
       await createComment(postingId, data)
       setReplyContent('')
       setReplyingTo(null)
+      setPage(0) // 첫 페이지로 이동
       showToast('답글이 작성되었습니다.', 'success')
       await loadComments()
     } catch (error: unknown) {
@@ -171,10 +176,12 @@ function CommentList({ postingId }: CommentListProps) {
     )
   }
 
+  const totalComments = pageInfo?.totalElements || comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)
+
   return (
     <div className="comment-section">
       <ToastContainer />
-      <h2>댓글 ({comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)})</h2>
+      <h2>댓글 ({totalComments})</h2>
 
       {/* 댓글 작성 폼 */}
       <div className="comment-form">
@@ -192,7 +199,7 @@ function CommentList({ postingId }: CommentListProps) {
 
       {/* 댓글 목록 */}
       <div className="comment-list">
-        {comments.length === 0 ? (
+        {comments.length === 0 && !loading ? (
           <p className="no-comments">아직 댓글이 없습니다. 첫 댓글을 작성해보세요!</p>
         ) : (
           comments.map((comment) => (
@@ -224,6 +231,31 @@ function CommentList({ postingId }: CommentListProps) {
           ))
         )}
       </div>
+
+      {/* 페이지네이션 */}
+      {pageInfo && pageInfo.totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px', alignItems: 'center' }}>
+          <Button
+            onClick={() => setPage(page - 1)}
+            disabled={page === 0}
+            variant="secondary"
+            style={{ padding: '8px 16px' }}
+          >
+            이전
+          </Button>
+          <span style={{ fontSize: '14px', color: '#666' }}>
+            {page + 1} / {pageInfo.totalPages}
+          </span>
+          <Button
+            onClick={() => setPage(page + 1)}
+            disabled={page >= pageInfo.totalPages - 1}
+            variant="secondary"
+            style={{ padding: '8px 16px' }}
+          >
+            다음
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

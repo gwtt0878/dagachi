@@ -14,6 +14,8 @@ import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class PostingService {
     return postings.map(PostingSimpleResponseDto::of);
   }
 
+  @Cacheable(value = "posting", key = "#id")
   public PostingResponseDto getPostingById(Long id) {
     Posting posting =
         postingRepository
@@ -39,6 +42,9 @@ public class PostingService {
   }
 
   @Transactional
+  @CacheEvict(
+      value = {"posting", "postings"},
+      allEntries = true)
   public PostingResponseDto createPosting(
       Long authorId, PostingCreateRequestDto postingRequestDto) {
     User user =
@@ -66,6 +72,9 @@ public class PostingService {
   }
 
   @Transactional
+  @CacheEvict(
+      value = {"posting", "postings"},
+      key = "#id")
   public PostingResponseDto updatePosting(
       Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
     Posting posting =
@@ -78,6 +87,9 @@ public class PostingService {
   }
 
   @Transactional
+  @CacheEvict(
+      value = {"posting", "postings"},
+      key = "#id")
   public void deletePosting(Long id, Long currentUserId) {
     Posting posting =
         postingRepository

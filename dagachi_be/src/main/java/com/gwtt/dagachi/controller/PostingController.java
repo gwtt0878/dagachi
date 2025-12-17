@@ -10,10 +10,10 @@ import com.gwtt.dagachi.service.PostingService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,10 +32,10 @@ public class PostingController {
   private final PostingService postingService;
 
   @GetMapping
-  public ResponseEntity<Page<PostingSimpleResponseDto>> getPostings(
+  public ResponseEntity<PagedModel<PostingSimpleResponseDto>> getPostings(
       @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
-    return ResponseEntity.ok(postingService.getPostings(pageable));
+    return ResponseEntity.ok(new PagedModel<>(postingService.getPostings(pageable)));
   }
 
   @GetMapping("/{id}")
@@ -71,10 +71,10 @@ public class PostingController {
   }
 
   @PostMapping("/search")
-  public ResponseEntity<Page<PostingSimpleResponseDto>> searchPostings(
+  public ResponseEntity<PagedModel<PostingSimpleResponseDto>> searchPostings(
       @RequestBody PostingSearchCondition condition,
       @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
-    return ResponseEntity.ok(postingService.searchPostings(condition, pageable));
+    return ResponseEntity.ok(new PagedModel<>(postingService.searchPostings(condition, pageable)));
   }
 }

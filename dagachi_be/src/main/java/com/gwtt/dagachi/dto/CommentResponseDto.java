@@ -2,11 +2,16 @@ package com.gwtt.dagachi.dto;
 
 import com.gwtt.dagachi.entity.Comment;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CommentResponseDto {
   private Long id;
   private Long parentCommentId;

@@ -11,10 +11,12 @@ import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.CommentRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -24,13 +26,13 @@ public class CommentService {
   private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
-  public List<CommentResponseDto> getComments(Long postingId) {
+  public Page<CommentResponseDto> getComments(Long postingId, Pageable pageable) {
     Posting posting =
         postingRepository
             .findById(postingId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    List<Comment> comments = commentRepository.findByPostingFetched(posting);
-    return comments.stream().map(CommentResponseDto::of).toList();
+    Page<Comment> comments = commentRepository.findByPostingFetched(posting, pageable);
+    return comments.map(CommentResponseDto::of);
   }
 
   @Transactional(readOnly = true)

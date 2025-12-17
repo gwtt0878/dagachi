@@ -7,6 +7,8 @@ import com.gwtt.dagachi.entity.User;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +22,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
           + "LEFT JOIN FETCH p.posting "
           + "LEFT JOIN FETCH p.participant "
           + "WHERE p.posting = :posting AND p.deletedAt IS NULL")
-  List<Participation> findByPostingFetched(@Param("posting") Posting posting);
+  Page<Participation> findByPostingFetched(@Param("posting") Posting posting, Pageable pageable);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(

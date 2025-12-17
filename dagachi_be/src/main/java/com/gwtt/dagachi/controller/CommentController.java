@@ -5,8 +5,11 @@ import com.gwtt.dagachi.dto.CommentCreateRequestDto;
 import com.gwtt.dagachi.dto.CommentResponseDto;
 import com.gwtt.dagachi.dto.CommentUpdateRequestDto;
 import com.gwtt.dagachi.service.CommentService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,8 +28,11 @@ public class CommentController {
   private final CommentService commentService;
 
   @GetMapping
-  public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long postingId) {
-    return ResponseEntity.ok(commentService.getComments(postingId));
+  public ResponseEntity<PagedModel<CommentResponseDto>> getComments(
+      @PathVariable Long postingId,
+      @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    return ResponseEntity.ok(new PagedModel<>(commentService.getComments(postingId, pageable)));
   }
 
   @PostMapping

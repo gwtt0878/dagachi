@@ -33,16 +33,18 @@ export interface SearchPostingParams {
 }
 
 // 모든 포스팅 목록 조회 (페이징)
-export const getAllPostings = async (page: number = 0): Promise<PageResponse<PostingSimple>> => {
-  const response = await api.get<PageResponse<PostingSimple>>(`/api/postings?page=${page}`)
+export const getAllPostings = async (page: number = 0, size: number = 5): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/postings?page=${page}&size=${size}&sort=createdAt,desc`)
   return response.data
 }
 
 // 포스팅 검색 (페이징)
-export const searchPostings = async (params: SearchPostingParams): Promise<PageResponse<PostingSimple>> => {
+export const searchPostings = async (params: SearchPostingParams, size: number = 5): Promise<PageResponse<PostingSimple>> => {
   // 페이지 정보는 query parameter로 유지
   const queryParams = new URLSearchParams()
   queryParams.append('page', String(params.page || 0))
+  queryParams.append('size', String(size))
+  queryParams.append('sort', params.sortByDistance ? 'distance,asc' : 'createdAt,desc')
   
   // 검색 조건은 request body로 전송
   const searchBody = {
@@ -98,9 +100,15 @@ export const leavePosting = async (postingId: number): Promise<void> => {
   await api.delete(`/api/participation/${postingId}`)
 }
 
-// 참가자 목록 조회
-export const getParticipations = async (postingId: number): Promise<Participation[]> => {
-  const response = await api.get<Participation[]>(`/api/participation/${postingId}`)
+// 참가자 목록 조회 (페이징)
+export const getParticipations = async (
+  postingId: number,
+  page: number = 0,
+  size: number = 5
+): Promise<PageResponse<Participation>> => {
+  const response = await api.get<PageResponse<Participation>>(
+    `/api/participation/${postingId}?page=${page}&size=${size}&sort=createdAt,desc`
+  )
   return response.data
 }
 
