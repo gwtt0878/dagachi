@@ -41,8 +41,8 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 3000,
-      maximumAge: 60000
+      timeout: 10000,
+      maximumAge: 0
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -53,23 +53,7 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
         })
       },
       (error) => {
-        if (error.code === error.TIMEOUT) { // 타임 아웃시 낮은 정확도로 다시 시도
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              resolve({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-              })
-            },
-            (error) => {
-              reject(getErrorReject(error))
-            },
-            {...options, enableHighAccuracy: false}
-          )
-        }
-        else {
-          reject(getErrorReject(error))
-        }
+        reject(getErrorReject(error))
       },
       options
     )
