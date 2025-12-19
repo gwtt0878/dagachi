@@ -3,11 +3,16 @@ package com.gwtt.dagachi.dto;
 import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.entity.Participation;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ParticipationResponseDto {
   private Long participationId;
   private Long postingId;

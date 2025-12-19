@@ -10,6 +10,7 @@ import { getCurrentNickname } from '../api/auth'
 import type { Posting } from '../types'
 import '../styles/common.css'
 import { AxiosError } from 'axios'
+import NaverMap from '../components/NaverMap'
 
 function PostingEditPage() {
   const { id } = useParams<{ id: string }>()
@@ -22,7 +23,9 @@ function PostingEditPage() {
     description: '',
     maxCapacity: 4,
     type: 'PROJECT',
-    status: 'RECRUITING'
+    status: 'RECRUITING',
+    latitude: 0,
+    longitude: 0
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -62,7 +65,9 @@ function PostingEditPage() {
           description: data.description,
           maxCapacity: data.maxCapacity,
           type: data.type as 'PROJECT' | 'STUDY',
-          status: data.status as 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED'
+          status: data.status as 'RECRUITING' | 'RECRUITED' | 'COMPLETED',
+          latitude: data.latitude,
+          longitude: data.longitude
         })
       } catch (err: unknown) {
         if (err instanceof AxiosError) {
@@ -106,10 +111,18 @@ function PostingEditPage() {
     }))
   }
 
-  const handleStatusChange = (status: 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED') => {
+  const handleStatusChange = (status: 'RECRUITING' | 'RECRUITED' | 'COMPLETED') => {
     setFormData(prev => ({
       ...prev,
       status
+    }))
+  }
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng
     }))
   }
 
@@ -266,10 +279,11 @@ function PostingEditPage() {
                 </button>
                 <button
                   type="button"
-                  className={`type-button ${formData.status === 'IN_PROGRESS' ? 'active study' : ''}`}
-                  onClick={() => handleStatusChange('IN_PROGRESS')}
+                  className={`type-button ${formData.status === 'RECRUITED' ? 'active' : ''}`}
+                  onClick={() => handleStatusChange('RECRUITED')}
+                  style={formData.status === 'RECRUITED' ? { backgroundColor: '#FF9800', borderColor: '#FF9800' } : {}}
                 >
-                  진행중
+                  모집완료
                 </button>
                 <button
                   type="button"
@@ -277,7 +291,7 @@ function PostingEditPage() {
                   onClick={() => handleStatusChange('COMPLETED')}
                   style={formData.status === 'COMPLETED' ? { backgroundColor: '#888', borderColor: '#888' } : {}}
                 >
-                  완료
+                  종료
                 </button>
               </div>
             </div>
@@ -315,8 +329,9 @@ function PostingEditPage() {
 
             {/* 상세 설명 */}
             <div className="form-group">
-              <label className="form-label">상세 설명 *</label>
+              <label className="form-label" htmlFor="description">상세 설명 *</label>
               <textarea
+                id="description"
                 name="description"
                 className="form-textarea"
                 value={formData.description}
@@ -328,6 +343,10 @@ function PostingEditPage() {
               <span className="help-text">
                 모집 목적, 진행 방식, 기간, 필요한 기술 스택 등을 자세히 작성해주세요.
               </span>
+            </div>
+
+            <div className="form-group">
+              <NaverMap withInteraction={true} setPickedLocation={handleLocationChange} latitude={formData.latitude} longitude={formData.longitude} />
             </div>
 
             {error && <p className="error-message">{error}</p>}

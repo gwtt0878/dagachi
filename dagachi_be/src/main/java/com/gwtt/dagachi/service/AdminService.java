@@ -3,7 +3,8 @@ package com.gwtt.dagachi.service;
 import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.UserSimpleResponseDto;
 import com.gwtt.dagachi.entity.User;
-import com.gwtt.dagachi.exception.NotFoundUserException;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,10 +21,9 @@ public class AdminService {
   public void updateUserRole(Long userId, Role role) {
     User user =
         userRepository
-            .findById(userId)
-            .orElseThrow(() -> new NotFoundUserException("사용자를 찾을 수 없습니다."));
+            .findByIdForUpdate(userId)
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     user.updateRole(role);
-    userRepository.save(user);
   }
 
   @Transactional(readOnly = true)

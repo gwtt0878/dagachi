@@ -8,6 +8,7 @@ import { createPosting, type CreatePostingRequest } from '../api/posting'
 import { useToast } from '../hooks/useToast'
 import '../styles/common.css'
 import { AxiosError } from 'axios'
+import NaverMap from '../components/NaverMap'
 
 function PostingCreatePage() {
   const navigate = useNavigate()
@@ -17,7 +18,9 @@ function PostingCreatePage() {
     title: '',
     description: '',
     maxCapacity: 4,
-    type: 'PROJECT'
+    type: 'PROJECT',
+    latitude: 0,
+    longitude: 0
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -49,6 +52,14 @@ function PostingCreatePage() {
     setFormData(prev => ({
       ...prev,
       type
+    }))
+  }
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng
     }))
   }
 
@@ -194,8 +205,9 @@ function PostingCreatePage() {
 
             {/* 상세 설명 */}
             <div className="form-group">
-              <label className="form-label">상세 설명 *</label>
+              <label className="form-label" htmlFor="description">상세 설명 *</label>
               <textarea
+                id="description"
                 name="description"
                 className="form-textarea"
                 value={formData.description}
@@ -206,6 +218,13 @@ function PostingCreatePage() {
               />
               <span className="help-text">
                 모집 목적, 진행 방식, 기간, 필요한 기술 스택 등을 자세히 작성해주세요.
+              </span>
+            </div>
+
+            <div className="form-group">
+              <NaverMap withInteraction={true} setPickedLocation={handleLocationChange} />
+              <span className="help-text">
+                오프라인으로 만난다면 장소를 정해주세요.
               </span>
             </div>
 

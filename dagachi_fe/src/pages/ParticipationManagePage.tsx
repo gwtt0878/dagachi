@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import NavBar from '../components/NavBar'
-import { getPostingById, getParticipations, approveParticipation, rejectParticipation } from '../api/posting'
+import { getPostingById, getParticipations, approveParticipation, rejectParticipation, cancelApproval } from '../api/posting'
 import { useToast } from '../hooks/useToast'
-import type { Posting, Participation } from '../types'
+import type { Posting, Participation, PageResponse } from '../types'
 import { AxiosError } from 'axios'
 import { getCurrentNickname } from '../api/auth'
 import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
@@ -19,6 +19,8 @@ function ParticipationManagePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [processingId, setProcessingId] = useState<number | null>(null)
+  const [page, setPage] = useState(0)
+  const [pageInfo, setPageInfo] = useState<PageResponse<Participation> | null>(null)
 
   const fetchData = async () => {
     const token = localStorage.getItem('token')
@@ -44,8 +46,9 @@ function ParticipationManagePage() {
         return
       }
 
-      const participationsData = await getParticipations(Number(id))
-      setParticipations(participationsData)
+      const participationsData = await getParticipations(Number(id), page, 5)
+      setPageInfo(participationsData)
+      setParticipations(participationsData.content)
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 403) {
@@ -65,7 +68,7 @@ function ParticipationManagePage() {
 
   useEffect(() => {
     fetchData()
-  }, [id])
+  }, [id, page])
 
   const handleApprove = async (participationId: number) => {
     if (!id || processingId) return
@@ -74,6 +77,7 @@ function ParticipationManagePage() {
     try {
       await approveParticipation(Number(id), participationId)
       showToast('참가자를 승인했습니다! ✅', 'success')
+      setPage(0) // 첫 페이지로 이동
       await fetchData()
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -95,10 +99,32 @@ function ParticipationManagePage() {
     try {
       await rejectParticipation(Number(id), participationId)
       showToast('참가자를 거절했습니다.', 'success')
+      setPage(0) // 첫 페이지로 이동
       await fetchData()
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         showToast('거절에 실패했습니다.', 'error')
+      }
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  const handleCancelApproval = async (participationId: number) => {
+    if (!id || processingId) return
+
+    const confirmed = window.confirm('정말로 이 참가자의 승인을 취소하시겠습니까?')
+    if (!confirmed) return
+
+    setProcessingId(participationId)
+    try {
+      await cancelApproval(Number(id), participationId)
+      showToast('참가자 승인을 취소했습니다.', 'success')
+      setPage(0) // 첫 페이지로 이동
+      await fetchData()
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        showToast('승인 취소에 실패했습니다.', 'error')
       }
     } finally {
       setProcessingId(null)
@@ -297,17 +323,31 @@ function ParticipationManagePage() {
                         })}
                       </div>
                     </div>
-                    <span
-                      style={{
-                        ...getStatusBadgeStyle('APPROVED'),
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      {getStatusText('APPROVED')}
-                    </span>
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', minWidth: '200px' }}>
+                      <span
+                        style={{
+                          ...getStatusBadgeStyle('APPROVED'),
+                          padding: '8px 16px',
+                          borderRadius: '20px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {getStatusText('APPROVED')}
+                      </span>
+                      <Button
+                        onClick={() => handleCancelApproval(participation.participationId)}
+                        variant="primary"
+                        disabled={processingId !== null}
+                        style={{ 
+                          backgroundColor: '#ef4444',
+                          maxWidth: '120px',
+                          minWidth: '120px'
+                        }}
+                      >
+                        {processingId === participation.participationId ? '처리 중...' : '승인 취소'}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -363,9 +403,34 @@ function ParticipationManagePage() {
             </div>
           )}
 
-          {participations.length === 0 && (
+          {participations.length === 0 && !loading && (
             <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
               <p style={{ fontSize: '18px' }}>아직 참가 신청이 없습니다.</p>
+            </div>
+          )}
+
+          {/* 페이지네이션 */}
+          {pageInfo && pageInfo.totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '30px', alignItems: 'center' }}>
+              <Button
+                onClick={() => setPage(page - 1)}
+                disabled={page === 0}
+                variant="secondary"
+                style={{ padding: '8px 16px' }}
+              >
+                이전
+              </Button>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                {page + 1} / {pageInfo.totalPages} (전체 {pageInfo.totalElements}명)
+              </span>
+              <Button
+                onClick={() => setPage(page + 1)}
+                disabled={page >= pageInfo.totalPages - 1}
+                variant="secondary"
+                style={{ padding: '8px 16px' }}
+              >
+                다음
+              </Button>
             </div>
           )}
 

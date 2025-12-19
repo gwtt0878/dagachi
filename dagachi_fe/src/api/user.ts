@@ -13,8 +13,8 @@ export const getCurrentUser = async (): Promise<User> => {
 }
 
 // 관리자: 사용자 목록 조회 (페이징)
-export const getAdminUsers = async (page: number = 0): Promise<PageResponse<User>> => {
-  const response = await api.get<PageResponse<User>>(`/api/admin/users?page=${page}`)
+export const getAdminUsers = async (page: number = 0, size: number = 5): Promise<PageResponse<User>> => {
+  const response = await api.get<PageResponse<User>>(`/api/admin/users?page=${page}&size=${size}&sort=createdAt,desc`)
   return response.data
 }
 
@@ -24,13 +24,13 @@ export const updateUserRole = async (userId: number, role: 'USER' | 'ADMIN'): Pr
 }
 
 // 사용자가 작성한 게시글 조회 (페이징)
-export const getAuthoredPostings = async (userId: number, page: number = 0): Promise<PageResponse<PostingSimple>> => {
-  const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/authored?page=${page}`)
+export const getAuthoredPostings = async (userId: number, page: number = 0, size: number = 5): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/authored?page=${page}&size=${size}&sort=createdAt,desc`)
   return response.data
 }
 
 // 사용자가 참가한 게시글 조회 (페이징)
-export const getJoinedPostings = async (userId: number, page: number = 0): Promise<PageResponse<PostingSimple>> => {
-  const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/joined?page=${page}`)
+export const getJoinedPostings = async (userId: number, page: number = 0, size: number = 5): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/users/${userId}/joined?page=${page}&size=${size}&sort=createdAt,desc`)
   return response.data
 }

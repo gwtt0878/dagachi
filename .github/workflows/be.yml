@@ -26,6 +26,11 @@ jobs:
       - name: Create backend application.yml
         run: |
           mkdir -p dagachi_be/src/main/resources
+          cat > dagachi_be/src/main/resources/application.yaml << EOF
+          spring:
+            profiles:
+              active: prod
+          EOF
           echo "${{ secrets.BACKEND_APP_YML }}" > dagachi_be/src/main/resources/application-prod.yaml
 
       - name: chmod +x gradlew

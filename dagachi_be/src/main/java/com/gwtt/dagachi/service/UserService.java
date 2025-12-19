@@ -4,6 +4,8 @@ import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
 import com.gwtt.dagachi.dto.UserResponseDto;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,9 @@ public class UserService {
 
   public UserResponseDto getUserById(Long id) {
     User user =
-        userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
     return UserResponseDto.of(user);
   }
 

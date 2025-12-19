@@ -6,12 +6,17 @@ import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSearchCondition;
 import com.gwtt.dagachi.dto.PostingSimpleResponseDto;
 import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
+import com.gwtt.dagachi.entity.Location;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
+import com.gwtt.dagachi.exception.DagachiException;
+import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,30 +28,30 @@ public class PostingService {
   private final PostingRepository postingRepository;
   private final UserRepository userRepository;
 
-  public List<PostingSimpleResponseDto> getAllPostings() {
-    return postingRepository.findAll().stream().map(PostingSimpleResponseDto::of).toList();
-  }
-
   public Page<PostingSimpleResponseDto> getPostings(Pageable pageable) {
-    Page<Posting> postings = postingRepository.findAll(pageable);
+    Page<Posting> postings = postingRepository.findAllFetched(pageable);
     return postings.map(PostingSimpleResponseDto::of);
   }
 
+  @Cacheable(value = "posting", key = "#id")
   public PostingResponseDto getPostingById(Long id) {
     Posting posting =
         postingRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+            .findByIdFetched(id)
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     return PostingResponseDto.of(posting);
   }
 
   @Transactional
+  @CacheEvict(
+      value = {"posting", "postings"},
+      allEntries = true)
   public PostingResponseDto createPosting(
       Long authorId, PostingCreateRequestDto postingRequestDto) {
     User user =
         userRepository
             .findById(authorId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
 
     Posting posting =
         Posting.builder()
@@ -55,33 +60,51 @@ public class PostingService {
             .type(postingRequestDto.getType())
             .maxCapacity(postingRequestDto.getMaxCapacity())
             .author(user)
+            .location(
+                Location.of(postingRequestDto.getLatitude(), postingRequestDto.getLongitude()))
             .build();
 
     Posting savedPosting = postingRepository.save(posting);
-
-    return PostingResponseDto.of(savedPosting);
+    Posting fetchedPosting =
+        postingRepository
+            .findByIdFetched(savedPosting.getId())
+            .orElseThrow(() -> new DagachiException(ErrorCode.INTERNAL_SERVER_ERROR));
+    return PostingResponseDto.of(fetchedPosting);
   }
 
   @Transactional
+  @Caching(
+      evict = {
+        @CacheEvict(value = "posting", key = "#id"),
+        @CacheEvict(value = "postings", allEntries = true)
+      })
   public PostingResponseDto updatePosting(
       Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
     Posting posting =
         postingRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
-    checkAuthorization(posting, currentUserId);
+            .findByIdForUpdate(id)
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
+    if (!posting.getAuthor().getId().equals(currentUserId)) {
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
+    }
     posting.update(postingUpdateRequestDto);
-    Posting updatedPosting = postingRepository.save(posting);
-    return PostingResponseDto.of(updatedPosting);
+    return PostingResponseDto.of(posting);
   }
 
   @Transactional
-  public void deletePosting(Long id, Long currentUserId) {
+  @Caching(
+      evict = {
+        @CacheEvict(value = "posting", key = "#id"),
+        @CacheEvict(value = "postings", allEntries = true)
+      })
+  public void deletePosting(Long id, Long currentUserId, Role currentUserRole) {
     Posting posting =
         postingRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
-    checkAuthorization(posting, currentUserId);
+            .findByIdForUpdate(id)
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
+    if (currentUserRole != Role.ADMIN && !posting.getAuthor().getId().equals(currentUserId)) {
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
+    }
     postingRepository.delete(posting);
   }
 
@@ -89,20 +112,5 @@ public class PostingService {
       PostingSearchCondition condition, Pageable pageable) {
     Page<Posting> postings = postingRepository.searchPostings(condition, pageable);
     return postings.map(PostingSimpleResponseDto::of);
-  }
-
-  private void checkAuthorization(Posting posting, Long currentUserId) {
-    User currentUser =
-        userRepository
-            .findById(currentUserId)
-            .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-
-    if (currentUser.getRole().equals(Role.ADMIN)) {
-      return;
-    }
-
-    if (!posting.getAuthor().getId().equals(currentUser.getId())) {
-      throw new RuntimeException("해당 게시글의 수정/삭제 권한이 없습니다.");
-    }
   }
 }

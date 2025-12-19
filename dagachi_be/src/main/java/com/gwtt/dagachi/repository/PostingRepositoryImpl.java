@@ -5,6 +5,8 @@ import static com.gwtt.dagachi.entity.QPosting.posting;
 import com.gwtt.dagachi.dto.PostingSearchCondition;
 import com.gwtt.dagachi.entity.Posting;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +22,21 @@ public class PostingRepositoryImpl implements PostingRepositoryCustom {
   public Page<Posting> searchPostings(PostingSearchCondition condition, Pageable pageable) {
     BooleanBuilder builder = getBooleanBuilder(condition);
 
+    NumberTemplate<Double> orderByDistance = null;
+
+    if (condition.isSortByDistance()
+        && condition.getUserLatitude() != null
+        && condition.getUserLongitude() != null) {
+      orderByDistance = getDistanceTemplate(condition);
+    }
+
     List<Posting> result =
         queryFactory
             .selectFrom(posting)
             .leftJoin(posting.author)
             .fetchJoin()
             .where(builder)
-            .orderBy(posting.createdAt.desc())
+            .orderBy(orderByDistance != null ? orderByDistance.asc() : posting.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
@@ -56,6 +66,18 @@ public class PostingRepositoryImpl implements PostingRepositoryCustom {
     if (condition.getAuthorNickname() != null) {
       builder.and(posting.author.nickname.contains(condition.getAuthorNickname()));
     }
+
+    builder.and(posting.deletedAt.isNull());
     return builder;
+  }
+
+  private NumberTemplate<Double> getDistanceTemplate(PostingSearchCondition condition) {
+    return Expressions.numberTemplate(
+        Double.class,
+        "6371 * acos(cos(radians({0})) * cos(radians({1})) * cos(radians({2}) - radians({3})) + sin(radians({0})) * sin(radians({1})))",
+        condition.getUserLatitude(),
+        posting.location.latitude,
+        posting.location.longitude,
+        condition.getUserLongitude());
   }
 }

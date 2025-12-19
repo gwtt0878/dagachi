@@ -7,6 +7,8 @@ export interface Posting {
   maxCapacity: number
   createdAt: string
   updatedAt: string
+  latitude: number
+  longitude: number
   authorId: number
   authorNickname: string
 }
@@ -16,8 +18,11 @@ export interface PostingSimple {
   title: string
   type: string
   status: string
+  latitude: number
+  longitude: number
   maxCapacity: number
   createdAt: string
+  updatedAt: string
   authorNickname: string
 }
 
@@ -38,6 +43,12 @@ export interface Participation {
   updatedAt: string
 }
 
+export interface ParticipationSimple {
+  participationId: number | null
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | null
+  createdAt: string | null
+}
+
 export interface PageResponse<T> {
   content: T[]
   pageable: {
@@ -52,4 +63,26 @@ export interface PageResponse<T> {
   size: number
   numberOfElements: number
   empty: boolean
+}
+
+export interface Comment {
+  id: number
+  parentCommentId: number | null
+  authorId: number
+  content: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  authorNickname: string
+  depth: number
+  replies?: Comment[] // 트리 구조를 위한 필드
+}
+
+export interface CommentCreateRequest {
+  content: string
+  parentCommentId?: number | null
+}
+
+export interface CommentUpdateRequest {
+  content: string
 }
