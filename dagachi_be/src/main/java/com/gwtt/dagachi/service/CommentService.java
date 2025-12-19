@@ -49,7 +49,7 @@ public class CommentService {
     Posting posting =
         postingRepository
             .findById(postingId)
-            .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     User author =
         userRepository
             .findById(userId)
@@ -91,12 +91,14 @@ public class CommentService {
 
   @Transactional
   public CommentResponseDto updateComment(
-      Long postingId, Long commentId, Long currentUserId, CommentUpdateRequestDto commentUpdateRequestDto) {
+      Long postingId,
+      Long commentId,
+      Long currentUserId,
+      CommentUpdateRequestDto commentUpdateRequestDto) {
     Comment comment =
         commentRepository
             .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    
 
     if (!comment.getAuthor().getId().equals(currentUserId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);

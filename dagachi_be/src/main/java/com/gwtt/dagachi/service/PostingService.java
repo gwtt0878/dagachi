@@ -74,11 +74,10 @@ public class PostingService {
 
   @Transactional
   @Caching(
-    evict = {
-      @CacheEvict(value = "posting", key = "#id"),
-      @CacheEvict(value = "postings", allEntries = true)
-    }
-  )
+      evict = {
+        @CacheEvict(value = "posting", key = "#id"),
+        @CacheEvict(value = "postings", allEntries = true)
+      })
   public PostingResponseDto updatePosting(
       Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
     Posting posting =
@@ -92,11 +91,10 @@ public class PostingService {
 
   @Transactional
   @Caching(
-    evict = {
-      @CacheEvict(value = "posting", key = "#id"),
-      @CacheEvict(value = "postings", allEntries = true)
-    }
-  )
+      evict = {
+        @CacheEvict(value = "posting", key = "#id"),
+        @CacheEvict(value = "postings", allEntries = true)
+      })
   public void deletePosting(Long id, Long currentUserId) {
     Posting posting =
         postingRepository
