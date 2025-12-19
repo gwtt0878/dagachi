@@ -1,11 +1,13 @@
 import api from './auth'
-import type { Posting, Participation, ParticipationSimple, PageResponse } from '../types'
+import type { Posting, Participation, ParticipationSimple, PageResponse, PostingSimple } from '../types'
 
 export interface CreatePostingRequest {
   title: string
   description: string
   maxCapacity: number
   type: 'PROJECT' | 'STUDY'
+  latitude: number
+  longitude: number
 }
 
 export interface UpdatePostingRequest {
@@ -14,6 +16,8 @@ export interface UpdatePostingRequest {
   maxCapacity: number
   type: 'PROJECT' | 'STUDY'
   status: 'RECRUITING' | 'RECRUITED' | 'COMPLETED'
+  latitude: number
+  longitude: number
 }
 
 export interface SearchPostingParams {
@@ -22,25 +26,38 @@ export interface SearchPostingParams {
   status?: 'RECRUITING' | 'RECRUITED' | 'COMPLETED' | ''
   authorNickname?: string
   page?: number
+  // 거리순 정렬을 위한 파라미터
+  userLatitude?: number
+  userLongitude?: number
+  sortByDistance?: boolean
 }
 
 // 모든 포스팅 목록 조회 (페이징)
-export const getAllPostings = async (page: number = 0): Promise<PageResponse<Posting>> => {
-  const response = await api.get<PageResponse<Posting>>(`/api/postings?page=${page}`)
+export const getAllPostings = async (page: number = 0, size: number = 5): Promise<PageResponse<PostingSimple>> => {
+  const response = await api.get<PageResponse<PostingSimple>>(`/api/postings?page=${page}&size=${size}&sort=createdAt,desc`)
   return response.data
 }
 
 // 포스팅 검색 (페이징)
-export const searchPostings = async (params: SearchPostingParams): Promise<PageResponse<Posting>> => {
+export const searchPostings = async (params: SearchPostingParams, size: number = 5): Promise<PageResponse<PostingSimple>> => {
+  // 페이지 정보는 query parameter로 유지
   const queryParams = new URLSearchParams()
-  
-  if (params.title) queryParams.append('title', params.title)
-  if (params.type) queryParams.append('type', params.type)
-  if (params.status) queryParams.append('status', params.status)
-  if (params.authorNickname) queryParams.append('authorNickname', params.authorNickname)
   queryParams.append('page', String(params.page || 0))
+  queryParams.append('size', String(size))
+  queryParams.append('sort', params.sortByDistance ? 'distance,asc' : 'createdAt,desc')
   
-  const response = await api.get<PageResponse<Posting>>(`/api/postings/search?${queryParams.toString()}`)
+  // 검색 조건은 request body로 전송
+  const searchBody = {
+    title: params.title || undefined,
+    type: params.type || undefined,
+    status: params.status || undefined,
+    authorNickname: params.authorNickname || undefined,
+    userLatitude: params.userLatitude,
+    userLongitude: params.userLongitude,
+    sortByDistance: params.sortByDistance || false
+  }
+  
+  const response = await api.post<PageResponse<PostingSimple>>(`/api/postings/search?${queryParams.toString()}`, searchBody)
   return response.data
 }
 
@@ -83,9 +100,15 @@ export const leavePosting = async (postingId: number): Promise<void> => {
   await api.delete(`/api/participation/${postingId}`)
 }
 
-// 참가자 목록 조회
-export const getParticipations = async (postingId: number): Promise<Participation[]> => {
-  const response = await api.get<Participation[]>(`/api/participation/${postingId}`)
+// 참가자 목록 조회 (페이징)
+export const getParticipations = async (
+  postingId: number,
+  page: number = 0,
+  size: number = 5
+): Promise<PageResponse<Participation>> => {
+  const response = await api.get<PageResponse<Participation>>(
+    `/api/participation/${postingId}?page=${page}&size=${size}&sort=createdAt,desc`
+  )
   return response.data
 }
 

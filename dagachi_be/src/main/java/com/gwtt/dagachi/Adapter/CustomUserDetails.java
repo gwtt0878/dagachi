@@ -1,5 +1,6 @@
 package com.gwtt.dagachi.adapter;
 
+import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.entity.User;
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +24,10 @@ public class CustomUserDetails implements UserDetails {
 
   public String getNickname() {
     return user.getNickname();
+  }
+
+  public Role getRole() {
+    return user.getRole();
   }
 
   @Override

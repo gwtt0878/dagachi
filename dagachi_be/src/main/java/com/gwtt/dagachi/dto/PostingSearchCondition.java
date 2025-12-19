@@ -12,4 +12,8 @@ public class PostingSearchCondition {
   private PostingType type;
   private PostingStatus status;
   private String authorNickname;
+
+  private Double userLatitude;
+  private Double userLongitude;
+  private boolean sortByDistance;
 }

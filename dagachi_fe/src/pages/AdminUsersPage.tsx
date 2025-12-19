@@ -181,6 +181,8 @@ function AdminUsersPage() {
                       <td style={{ padding: '8px', borderBottom: '1px solid #e5e7eb' }}>{u.nickname}</td>
                       <td style={{ padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
                         <select
+                          id={`user-role-${u.id}`}
+                          name={`userRole-${u.id}`}
                           value={currentRole}
                           disabled={isSelf}
                           onChange={(e) => handleRoleChange(u.id, e.target.value as 'USER' | 'ADMIN')}

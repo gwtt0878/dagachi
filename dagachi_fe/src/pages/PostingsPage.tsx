@@ -4,14 +4,15 @@ import Button from '../components/Button'
 import Modal from '../components/Modal'
 import NavBar from '../components/NavBar'
 import '../styles/common.css'
-import type { Posting } from '../types'
+import type { PostingSimple } from '../types'
 import { getAllPostings, searchPostings, type SearchPostingParams } from '../api/posting'
 import { AxiosError } from 'axios'
 import { getTypeLabel, getStatusLabel } from '../constants'
+import { getCurrentLocation, calculateDistance, formatDistance, type UserLocation, type LocationError } from '../utils/location'
 
 function PostingsPage() {
   const navigate = useNavigate()
-  const [postings, setPostings] = useState<Posting[]>([])
+  const [postings, setPostings] = useState<PostingSimple[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -24,6 +25,12 @@ function PostingsPage() {
   const [searchType, setSearchType] = useState<'' | 'PROJECT' | 'STUDY'>('')
   const [searchStatus, setSearchStatus] = useState<'' | 'RECRUITING' | 'RECRUITED' | 'COMPLETED'>('')
   const [searchAuthorNickname, setSearchAuthorNickname] = useState('')
+  
+  // 정렬 방식
+  const [sortType, setSortType] = useState<'date' | 'distance'>('date')
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [locationLoading, setLocationLoading] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
 
   const fetchPostings = useCallback(async (page: number = 0) => {
     setLoading(true)
@@ -35,7 +42,7 @@ function PostingsPage() {
       setTotalPages(data.totalPages)
       setCurrentPage(data.number)
     } catch (err) {
-      if (err instanceof AxiosError && err.status === 403) {
+      if (err instanceof AxiosError && err.response?.status === 403) {
         navigate('/login')
         return
       }
@@ -48,8 +55,14 @@ function PostingsPage() {
   
   const handleSearch = async () => {
     // 검색 조건이 하나라도 있으면 검색 모드
-    if (!searchTitle && !searchType && !searchStatus && !searchAuthorNickname) {
+    if (!searchTitle && !searchType && !searchStatus && !searchAuthorNickname && sortType === 'date') {
       setError('최소 하나 이상의 검색 조건을 입력해주세요.')
+      return
+    }
+    
+    // 거리순 정렬이 선택되었지만 위치 정보가 없는 경우
+    if (sortType === 'distance' && !userLocation) {
+      setError('거리순 정렬을 위해서는 위치 정보가 필요합니다.')
       return
     }
     
@@ -64,7 +77,10 @@ function PostingsPage() {
         type: searchType || undefined,
         status: searchStatus || undefined,
         authorNickname: searchAuthorNickname || undefined,
-        page: 0
+        page: 0,
+        sortByDistance: sortType === 'distance',
+        userLatitude: sortType === 'distance' && userLocation ? userLocation.latitude : undefined,
+        userLongitude: sortType === 'distance' && userLocation ? userLocation.longitude : undefined
       }
       
       const data = await searchPostings(params)
@@ -89,7 +105,10 @@ function PostingsPage() {
         type: searchType || undefined,
         status: searchStatus || undefined,
         authorNickname: searchAuthorNickname || undefined,
-        page
+        page,
+        sortByDistance: sortType === 'distance' || undefined,
+        userLatitude: sortType === 'distance' && userLocation ? userLocation.latitude : undefined,
+        userLongitude: sortType === 'distance' && userLocation ? userLocation.longitude : undefined
       }
       
       const data = await searchPostings(params)
@@ -110,8 +129,30 @@ function PostingsPage() {
     setSearchType('')
     setSearchStatus('')
     setSearchAuthorNickname('')
+    setSortType('date')
     setCurrentPage(0)
     fetchPostings(0)
+  }
+  
+  // 사용자 위치 정보 가져오기
+  const handleGetLocation = async () => {
+    setLocationLoading(true)
+    setLocationError(null)
+    
+    try {
+      const location = await getCurrentLocation()
+      setUserLocation(location)
+    } catch (err) {
+      const error = err as LocationError
+      setLocationError(error.message)
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
+  // 정렬 방식 변경 처리
+  const handleSortTypeChange = (newSortType: 'date' | 'distance') => {
+    setSortType(newSortType)
   }
 
   useEffect(() => {
@@ -122,6 +163,9 @@ function PostingsPage() {
       setLoading(false)
       return
     }
+    
+    // 페이지 로드 시 자동으로 위치 정보 가져오기 (백그라운드에서)
+    handleGetLocation()
     
     fetchPostings(currentPage)
   }, [fetchPostings, currentPage])
@@ -196,8 +240,10 @@ function PostingsPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
           {/* 제목 검색 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>제목</label>
+            <label htmlFor="search-title" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>제목</label>
             <input
+              id="search-title"
+              name="searchTitle"
               type="text"
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
@@ -215,8 +261,10 @@ function PostingsPage() {
           
           {/* 타입 선택 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>타입</label>
+            <label htmlFor="search-type" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>타입</label>
             <select
+              id="search-type"
+              name="searchType"
               value={searchType}
               onChange={(e) => setSearchType(e.target.value as '' | 'PROJECT' | 'STUDY')}
               style={{
@@ -236,8 +284,10 @@ function PostingsPage() {
           
           {/* 상태 선택 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>상태</label>
+            <label htmlFor="search-status" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>상태</label>
             <select
+              id="search-status"
+              name="searchStatus"
               value={searchStatus}
               onChange={(e) => setSearchStatus(e.target.value as '' | 'RECRUITING' | 'RECRUITED' | 'COMPLETED')}
               style={{
@@ -258,8 +308,10 @@ function PostingsPage() {
           
           {/* 작성자 검색 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>작성자</label>
+            <label htmlFor="search-author" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>작성자</label>
             <input
+              id="search-author"
+              name="searchAuthorNickname"
               type="text"
               value={searchAuthorNickname}
               onChange={(e) => setSearchAuthorNickname(e.target.value)}
@@ -274,6 +326,76 @@ function PostingsPage() {
               }}
             />
           </div>
+          
+          {/* 정렬 방식 선택 */}
+          <div>
+            <label htmlFor="search-sort" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>정렬</label>
+            <select
+              id="search-sort"
+              name="sortType"
+              value={sortType}
+              onChange={(e) => handleSortTypeChange(e.target.value as 'date' | 'distance')}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="date">게시일자순</option>
+              <option value="distance">거리순</option>
+            </select>
+          </div>
+        </div>
+        
+        {/* 위치 관련 상태 메시지 */}
+        <div style={{ marginTop: '15px' }}>
+          {/* 위치 정보 로딩 중 */}
+          {locationLoading && (
+            <div style={{ 
+              color: '#856404', 
+              fontSize: '12px', 
+              padding: '8px',
+              backgroundColor: '#fff3cd',
+              borderRadius: '4px',
+              border: '1px solid #ffeaa7',
+              marginBottom: '8px'
+            }}>
+              📍 위치 정보 확인 중...
+            </div>
+          )}
+          
+          {/* 위치 오류 메시지 */}
+          {locationError && !locationLoading && (
+            <div style={{ 
+              color: '#dc3545', 
+              fontSize: '12px', 
+              padding: '8px',
+              backgroundColor: '#f8d7da',
+              borderRadius: '4px',
+              border: '1px solid #f5c6cb',
+              marginBottom: '8px'
+            }}>
+              ⚠️ {locationError} (거리순 정렬 시 위치 정보가 필요합니다)
+            </div>
+          )}
+          
+          {/* 위치 정보 확인 완료 */}
+          {userLocation && !locationLoading && !locationError && (
+            <div style={{ 
+              color: '#155724', 
+              fontSize: '12px', 
+              padding: '8px',
+              marginBottom: '8px',
+              backgroundColor: '#d4edda',
+              borderRadius: '4px',
+              border: '1px solid #c3e6cb'
+            }}>
+              ✅ 위치 정보가 확인되었습니다. 거리순 정렬을 사용할 수 있습니다.
+            </div>
+          )}
         </div>
         
         {/* 검색 버튼 */}
@@ -289,6 +411,11 @@ function PostingsPage() {
         {searchMode && (
           <div style={{ marginTop: '10px', textAlign: 'center', color: '#666', fontSize: '14px' }}>
             🔎 검색 결과입니다
+            {sortType === 'distance' && userLocation && (
+              <div style={{ marginTop: '5px', fontSize: '12px', color: '#28a745' }}>
+                📍 거리순으로 정렬됨
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -322,6 +449,25 @@ function PostingsPage() {
               </div>
               <div className="meta-item">
                 <span className="posting-author">모집자: {posting.authorNickname}</span>
+                {/* 거리 정보 표시 */}
+                {userLocation && posting.latitude && posting.longitude && (
+                  <span style={{ 
+                    marginLeft: '10px', 
+                    color: '#666', 
+                    fontSize: '14px',
+                    backgroundColor: '#e8f5e8',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid #c3e6c3'
+                  }}>
+                    📍 {formatDistance(calculateDistance(
+                      userLocation.latitude,
+                      userLocation.longitude,
+                      posting.latitude,
+                      posting.longitude
+                    ))}
+                  </span>
+                )}
               </div>
               <p className="posting-created-at">
                 {new Date(posting.createdAt).toLocaleDateString('ko-KR', {

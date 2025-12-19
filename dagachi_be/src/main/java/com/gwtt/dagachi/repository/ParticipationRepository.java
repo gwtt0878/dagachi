@@ -7,6 +7,8 @@ import com.gwtt.dagachi.entity.User;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -15,18 +17,36 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
+  @Query(
+      "SELECT p FROM Participation p "
+          + "LEFT JOIN FETCH p.posting "
+          + "LEFT JOIN FETCH p.participant "
+          + "WHERE p.posting = :posting AND p.deletedAt IS NULL")
+  Page<Participation> findByPostingFetched(@Param("posting") Posting posting, Pageable pageable);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT p FROM Participation p JOIN FETCH p.posting WHERE p.id = :id")
+  @Query(
+      "SELECT p FROM Participation p JOIN FETCH p.posting WHERE p.id = :id AND p.deletedAt IS NULL")
   Optional<Participation> findByIdWithPostingForUpdate(@Param("id") Long id);
 
   List<Participation> findByPostingId(Long postingId);
 
   boolean existsByParticipantAndPosting(User user, Posting posting);
 
-  Optional<Participation> findByParticipantAndPosting(User user, Posting posting);
+  @Query(
+      "SELECT p FROM Participation p "
+          + "LEFT JOIN FETCH p.posting "
+          + "LEFT JOIN FETCH p.participant "
+          + "WHERE p.participant = :user AND p.posting = :posting AND p.deletedAt IS NULL")
+  Optional<Participation> findByParticipantAndPosting(
+      @Param("user") User user, @Param("posting") Posting posting);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT p FROM Participation p WHERE p.participant = :user AND p.posting = :posting")
+  @Query(
+      "SELECT p FROM Participation p "
+          + "LEFT JOIN FETCH p.posting "
+          + "LEFT JOIN FETCH p.participant "
+          + "WHERE p.participant = :user AND p.posting = :posting AND p.deletedAt IS NULL")
   Optional<Participation> findByParticipantAndPostingForUpdate(
       @Param("user") User user, @Param("posting") Posting posting);
 

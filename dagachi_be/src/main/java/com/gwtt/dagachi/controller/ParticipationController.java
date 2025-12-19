@@ -5,8 +5,12 @@ import com.gwtt.dagachi.dto.ParticipationResponseDto;
 import com.gwtt.dagachi.dto.ParticipationSimpleResponseDto;
 import com.gwtt.dagachi.service.ParticipationService;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -81,12 +85,14 @@ public class ParticipationController {
   }
 
   @GetMapping("/{postingId}")
-  public ResponseEntity<List<ParticipationResponseDto>> getParticipations(
+  public ResponseEntity<PagedModel<ParticipationResponseDto>> getParticipations(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @PathVariable @NotNull Long postingId) {
+      @PathVariable @NotNull Long postingId,
+      @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
     Long currentUserId = userDetails.getUserId();
-    List<ParticipationResponseDto> participations =
-        participationService.getParticipationsByPostingId(currentUserId, postingId);
-    return ResponseEntity.ok(participations);
+    Page<ParticipationResponseDto> participations =
+        participationService.getParticipationsByPostingId(currentUserId, postingId, pageable);
+    return ResponseEntity.ok(new PagedModel<>(participations));
   }
 }

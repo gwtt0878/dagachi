@@ -4,7 +4,6 @@ import com.gwtt.dagachi.constants.ParticipationStatus;
 import com.gwtt.dagachi.constants.PostingStatus;
 import com.gwtt.dagachi.dto.ParticipationResponseDto;
 import com.gwtt.dagachi.dto.ParticipationSimpleResponseDto;
-import java.time.LocalDateTime;
 import com.gwtt.dagachi.entity.Participation;
 import com.gwtt.dagachi.entity.Posting;
 import com.gwtt.dagachi.entity.User;
@@ -13,8 +12,12 @@ import com.gwtt.dagachi.exception.ErrorCode;
 import com.gwtt.dagachi.repository.ParticipationRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
-import java.util.List;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class ParticipationService {
   private final ParticipationRepository participationRepository;
 
   @Transactional(readOnly = true)
+  @Cacheable(value = "participations", key = "#userId + ':' + #postingId")
   public ParticipationSimpleResponseDto getSimpleParticipation(Long userId, Long postingId) {
     User user =
         userRepository
@@ -37,9 +41,7 @@ public class ParticipationService {
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     Participation participation =
-        participationRepository
-            .findByParticipantAndPosting(user, posting)
-            .orElse(null);
+        participationRepository.findByParticipantAndPosting(user, posting).orElse(null);
 
     // 참가하지 않은 경우 -1 반환
     if (participation == null) {
@@ -72,21 +74,24 @@ public class ParticipationService {
   }
 
   @Transactional(readOnly = true)
-  public List<ParticipationResponseDto> getParticipationsByPostingId(Long userId, Long postingId) {
+  public Page<ParticipationResponseDto> getParticipationsByPostingId(
+      Long userId, Long postingId, Pageable pageable) {
     Posting posting =
         postingRepository
-            .findById(postingId)
+            .findByIdFetched(postingId)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
 
     if (!posting.getAuthor().getId().equals(userId)) {
       throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
 
-    List<Participation> participations = participationRepository.findByPostingId(postingId);
-    return participations.stream().map(ParticipationResponseDto::of).toList();
+    Page<Participation> participations =
+        participationRepository.findByPostingFetched(posting, pageable);
+    return participations.map(ParticipationResponseDto::of);
   }
 
   @Transactional
+  @CacheEvict(value = "participations", key = "#userId + ':' + #postingId")
   public void joinPosting(Long userId, Long postingId) {
     User user =
         userRepository
@@ -117,6 +122,7 @@ public class ParticipationService {
   }
 
   @Transactional
+  @CacheEvict(value = "participations", key = "#userId + ':' + #postingId")
   public void leavePosting(Long userId, Long postingId) {
     User user =
         userRepository
@@ -141,6 +147,7 @@ public class ParticipationService {
   }
 
   @Transactional
+  @CacheEvict(value = "participations", allEntries = true)
   public void approveUser(Long authorId, Long participationId) {
     User author =
         userRepository
@@ -184,6 +191,7 @@ public class ParticipationService {
   }
 
   @Transactional
+  @CacheEvict(value = "participations", allEntries = true)
   public void rejectUser(Long authorId, Long participationId) {
     User author =
         userRepository

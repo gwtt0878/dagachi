@@ -1,0 +1,159 @@
+.comment-section {
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: 2px solid #e5e7eb;
+}
+
+.comment-section h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+.comment-form {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.no-comments {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.comment-item {
+  padding: 16px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  transition: box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.reply-item {
+  border-top: 1px solid #e5e7eb;
+  border-radius: 0;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.comment-date {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.comment-edited {
+  color: #9ca3af;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.comment-content {
+  margin: 12px 0;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.reply-button,
+.edit-button,
+.delete-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.reply-button:hover {
+  color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.edit-button:hover {
+  color: #10b981;
+  background-color: #ecfdf5;
+}
+
+.delete-button:hover {
+  color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.comment-edit-form {
+  margin-top: 12px;
+  box-sizing: border-box;
+}
+
+.comment-edit-form .comment-actions {
+  margin-top: 8px;
+}
+
+.reply-form {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.replies {
+  margin-top: 16px;
+  margin-left: 40px;
+}

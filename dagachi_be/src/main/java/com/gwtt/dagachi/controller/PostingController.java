@@ -1,8 +1,7 @@
 package com.gwtt.dagachi.controller;
 
 import com.gwtt.dagachi.adapter.CustomUserDetails;
-import com.gwtt.dagachi.constants.PostingStatus;
-import com.gwtt.dagachi.constants.PostingType;
+import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.PostingCreateRequestDto;
 import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSearchCondition;
@@ -12,10 +11,10 @@ import com.gwtt.dagachi.service.PostingService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -35,10 +33,10 @@ public class PostingController {
   private final PostingService postingService;
 
   @GetMapping
-  public ResponseEntity<Page<PostingSimpleResponseDto>> getPostings(
+  public ResponseEntity<PagedModel<PostingSimpleResponseDto>> getPostings(
       @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
-    return ResponseEntity.ok(postingService.getPostings(pageable));
+    return ResponseEntity.ok(new PagedModel<>(postingService.getPostings(pageable)));
   }
 
   @GetMapping("/{id}")
@@ -69,25 +67,16 @@ public class PostingController {
   public ResponseEntity<Void> deletePosting(
       @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable @NotNull Long id) {
     Long currentUserId = userDetails.getUserId();
-    postingService.deletePosting(id, currentUserId);
+    Role currentUserRole = userDetails.getRole();
+    postingService.deletePosting(id, currentUserId, currentUserRole);
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/search")
-  public ResponseEntity<Page<PostingSimpleResponseDto>> searchPostings(
-      @RequestParam(required = false) String title,
-      @RequestParam(required = false) PostingType type,
-      @RequestParam(required = false) PostingStatus status,
-      @RequestParam(required = false) String authorNickname,
+  @PostMapping("/search")
+  public ResponseEntity<PagedModel<PostingSimpleResponseDto>> searchPostings(
+      @RequestBody PostingSearchCondition condition,
       @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
-    PostingSearchCondition condition =
-        PostingSearchCondition.builder()
-            .title(title)
-            .type(type)
-            .status(status)
-            .authorNickname(authorNickname)
-            .build();
-    return ResponseEntity.ok(postingService.searchPostings(condition, pageable));
+    return ResponseEntity.ok(new PagedModel<>(postingService.searchPostings(condition, pageable)));
   }
 }

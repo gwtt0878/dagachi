@@ -4,6 +4,7 @@ import com.gwtt.dagachi.constants.PostingStatus;
 import com.gwtt.dagachi.constants.PostingType;
 import com.gwtt.dagachi.dto.PostingUpdateRequestDto;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -65,19 +66,31 @@ public class Posting extends BaseTimeEntity {
   @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = false)
   private List<Participation> participations = new ArrayList<>();
 
+  @OneToMany(mappedBy = "posting", fetch = FetchType.LAZY, orphanRemoval = false)
+  private List<Comment> comments = new ArrayList<>();
+
+  @Embedded private Location location;
+
   private LocalDateTime deletedAt;
 
   @Column(nullable = false)
   private int maxCapacity;
 
   @Builder
-  public Posting(String title, String description, PostingType type, int maxCapacity, User author) {
+  public Posting(
+      String title,
+      String description,
+      PostingType type,
+      int maxCapacity,
+      User author,
+      Location location) {
     this.title = title;
     this.author = author;
     this.description = description;
     this.type = type;
     this.maxCapacity = maxCapacity;
     this.status = PostingStatus.RECRUITING;
+    this.location = location;
   }
 
   public void update(PostingUpdateRequestDto updateRequestDto) {
@@ -86,6 +99,7 @@ public class Posting extends BaseTimeEntity {
     this.type = updateRequestDto.getType();
     this.maxCapacity = updateRequestDto.getMaxCapacity();
     this.status = updateRequestDto.getStatus();
+    this.location = Location.of(updateRequestDto.getLatitude(), updateRequestDto.getLongitude());
   }
 
   public void setStatus(PostingStatus status) {

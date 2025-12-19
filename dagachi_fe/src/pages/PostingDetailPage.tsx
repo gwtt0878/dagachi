@@ -11,6 +11,8 @@ import '../styles/common.css'
 import { AxiosError } from 'axios'
 import { getCurrentNickname } from '../api/auth'
 import { getTypeLabel, getStatusLabel, getStatusClass } from '../constants'
+import NaverMap from '../components/NaverMap'
+import CommentList from '../components/CommentList'
 
 function PostingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -381,6 +383,11 @@ function PostingDetailPage() {
           </div>
         </div>
 
+        <div className="posting-detail-content">
+          <h2>위치</h2>
+          <NaverMap withInteraction={false} latitude={posting.latitude} longitude={posting.longitude} />
+        </div>
+
         <div className="posting-detail-actions">
           <Button onClick={() => navigate('/postings')} variant="secondary">
             목록으로
@@ -477,6 +484,9 @@ function PostingDetailPage() {
             </Button>
           )}
         </div>
+
+        {/* 댓글 섹션 */}
+        <CommentList postingId={Number(id)} />
       </div>
     </div>
     </>
