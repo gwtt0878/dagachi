@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Duration;
+import java.util.TimeZone;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -43,6 +44,7 @@ public class RedisConfig {
         BasicPolymorphicTypeValidator.builder().allowIfSubType("com.gwtt.dagachi.dto").build();
 
     cacheObjectMapper.registerModule(new JavaTimeModule());
+    cacheObjectMapper.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
     cacheObjectMapper.activateDefaultTyping(
         validator, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
     cacheObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);

@@ -18,8 +18,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
       "SELECT c FROM Comment c "
           + "LEFT JOIN FETCH c.author "
           + "LEFT JOIN FETCH c.parentComment "
-          + "WHERE c.posting = :posting AND c.deletedAt IS NULL "
-          + "ORDER BY c.createdAt ASC")
+          + "WHERE c.posting = :posting AND c.deletedAt IS NULL")
   Page<Comment> findByPostingFetched(@Param("posting") Posting posting, Pageable pageable);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)

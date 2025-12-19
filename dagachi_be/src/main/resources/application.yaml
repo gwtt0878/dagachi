@@ -1,5 +1,6 @@
 # spring:
-#   timezone: Asia/Seoul
+#   jackson:
+#     time-zone: Asia/Seoul
 #   application:
 #     name: dagachi
 #   datasource:
