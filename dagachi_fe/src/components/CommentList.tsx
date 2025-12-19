@@ -186,6 +186,8 @@ function CommentList({ postingId }: CommentListProps) {
       {/* 댓글 작성 폼 */}
       <div className="comment-form">
         <textarea
+          id="new-comment"
+          name="newComment"
           className="comment-textarea"
           placeholder="댓글을 입력하세요..."
           value={newComment}
@@ -313,6 +315,8 @@ function CommentItem({
       {isEditing ? (
         <div className="comment-edit-form">
           <textarea
+            id={`edit-comment-${comment.id}`}
+            name={`editComment-${comment.id}`}
             className="comment-textarea"
             value={editContent}
             onChange={(e) => onEditContentChange(e.target.value)}
@@ -362,6 +366,8 @@ function CommentItem({
           {isReplying && (
             <div className="reply-form">
               <textarea
+                id={`reply-comment-${comment.id}`}
+                name={`replyComment-${comment.id}`}
                 className="comment-textarea"
                 value={replyContent}
                 onChange={(e) => onReplyContentChange(e.target.value)}

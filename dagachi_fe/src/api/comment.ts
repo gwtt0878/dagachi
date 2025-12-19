@@ -5,10 +5,11 @@ import type { Comment, CommentCreateRequest, CommentUpdateRequest, PageResponse 
 export const getComments = async (
   postingId: number,
   page: number = 0,
-  size: number = 5
+  size: number = 5,
+  sort: string = 'createdAt,asc'
 ): Promise<PageResponse<Comment>> => {
   const response = await api.get<PageResponse<Comment>>(
-    `/api/postings/${postingId}/comment?page=${page}&size=${size}&sort=createdAt,asc`
+    `/api/postings/${postingId}/comment?page=${page}&size=${size}&sort=${sort}`
   )
   return response.data
 }

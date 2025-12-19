@@ -205,8 +205,9 @@ function PostingCreatePage() {
 
             {/* 상세 설명 */}
             <div className="form-group">
-              <label className="form-label">상세 설명 *</label>
+              <label className="form-label" htmlFor="description">상세 설명 *</label>
               <textarea
+                id="description"
                 name="description"
                 className="form-textarea"
                 value={formData.description}

@@ -1,6 +1,7 @@
 package com.gwtt.dagachi.controller;
 
 import com.gwtt.dagachi.adapter.CustomUserDetails;
+import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.CommentCreateRequestDto;
 import com.gwtt.dagachi.dto.CommentResponseDto;
 import com.gwtt.dagachi.dto.CommentUpdateRequestDto;
@@ -61,8 +62,10 @@ public class CommentController {
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long postingId,
       @PathVariable Long commentId) {
+
     Long currentUserId = userDetails.getUserId();
-    commentService.deleteComment(postingId, commentId, currentUserId);
+    Role currentUserRole = userDetails.getRole();
+    commentService.deleteComment(postingId, commentId, currentUserId, currentUserRole);
     return ResponseEntity.noContent().build();
   }
 }

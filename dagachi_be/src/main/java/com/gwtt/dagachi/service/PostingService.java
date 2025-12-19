@@ -84,7 +84,9 @@ public class PostingService {
         postingRepository
             .findByIdForUpdate(id)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
-    checkAuthorization(posting, currentUserId);
+    if (!posting.getAuthor().getId().equals(currentUserId)) {
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
+    }
     posting.update(postingUpdateRequestDto);
     return PostingResponseDto.of(posting);
   }
@@ -95,12 +97,14 @@ public class PostingService {
         @CacheEvict(value = "posting", key = "#id"),
         @CacheEvict(value = "postings", allEntries = true)
       })
-  public void deletePosting(Long id, Long currentUserId) {
+  public void deletePosting(Long id, Long currentUserId, Role currentUserRole) {
     Posting posting =
         postingRepository
             .findByIdForUpdate(id)
             .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
-    checkAuthorization(posting, currentUserId);
+    if (currentUserRole != Role.ADMIN && !posting.getAuthor().getId().equals(currentUserId)) {
+      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
+    }
     postingRepository.delete(posting);
   }
 
@@ -108,20 +112,5 @@ public class PostingService {
       PostingSearchCondition condition, Pageable pageable) {
     Page<Posting> postings = postingRepository.searchPostings(condition, pageable);
     return postings.map(PostingSimpleResponseDto::of);
-  }
-
-  private void checkAuthorization(Posting posting, Long currentUserId) {
-    User currentUser =
-        userRepository
-            .findById(currentUserId)
-            .orElseThrow(() -> new DagachiException(ErrorCode.USER_NOT_FOUND));
-
-    if (currentUser.getRole().equals(Role.ADMIN)) {
-      return;
-    }
-
-    if (!posting.getAuthor().getId().equals(currentUser.getId())) {
-      throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
-    }
   }
 }

@@ -1,5 +1,6 @@
 package com.gwtt.dagachi.service;
 
+import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.CommentCreateRequestDto;
 import com.gwtt.dagachi.dto.CommentResponseDto;
 import com.gwtt.dagachi.dto.CommentUpdateRequestDto;
@@ -99,7 +100,6 @@ public class CommentService {
         commentRepository
             .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-
     if (!comment.getAuthor().getId().equals(currentUserId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);
     }
@@ -114,12 +114,13 @@ public class CommentService {
   }
 
   @Transactional
-  public void deleteComment(Long postingId, Long commentId, Long currentUserId) {
+  public void deleteComment(
+      Long postingId, Long commentId, Long currentUserId, Role currentUserRole) {
     Comment comment =
         commentRepository
             .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    if (!comment.getAuthor().getId().equals(currentUserId)) {
+    if (currentUserRole != Role.ADMIN && !comment.getAuthor().getId().equals(currentUserId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);
     }
     if (!comment.getPosting().getId().equals(postingId)) {

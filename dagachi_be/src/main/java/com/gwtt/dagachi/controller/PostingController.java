@@ -1,6 +1,7 @@
 package com.gwtt.dagachi.controller;
 
 import com.gwtt.dagachi.adapter.CustomUserDetails;
+import com.gwtt.dagachi.constants.Role;
 import com.gwtt.dagachi.dto.PostingCreateRequestDto;
 import com.gwtt.dagachi.dto.PostingResponseDto;
 import com.gwtt.dagachi.dto.PostingSearchCondition;
@@ -66,7 +67,8 @@ public class PostingController {
   public ResponseEntity<Void> deletePosting(
       @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable @NotNull Long id) {
     Long currentUserId = userDetails.getUserId();
-    postingService.deletePosting(id, currentUserId);
+    Role currentUserRole = userDetails.getRole();
+    postingService.deletePosting(id, currentUserId, currentUserRole);
     return ResponseEntity.noContent().build();
   }
 

@@ -240,8 +240,10 @@ function PostingsPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
           {/* 제목 검색 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>제목</label>
+            <label htmlFor="search-title" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>제목</label>
             <input
+              id="search-title"
+              name="searchTitle"
               type="text"
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
@@ -259,8 +261,10 @@ function PostingsPage() {
           
           {/* 타입 선택 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>타입</label>
+            <label htmlFor="search-type" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>타입</label>
             <select
+              id="search-type"
+              name="searchType"
               value={searchType}
               onChange={(e) => setSearchType(e.target.value as '' | 'PROJECT' | 'STUDY')}
               style={{
@@ -280,8 +284,10 @@ function PostingsPage() {
           
           {/* 상태 선택 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>상태</label>
+            <label htmlFor="search-status" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>상태</label>
             <select
+              id="search-status"
+              name="searchStatus"
               value={searchStatus}
               onChange={(e) => setSearchStatus(e.target.value as '' | 'RECRUITING' | 'RECRUITED' | 'COMPLETED')}
               style={{
@@ -302,8 +308,10 @@ function PostingsPage() {
           
           {/* 작성자 검색 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>작성자</label>
+            <label htmlFor="search-author" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>작성자</label>
             <input
+              id="search-author"
+              name="searchAuthorNickname"
               type="text"
               value={searchAuthorNickname}
               onChange={(e) => setSearchAuthorNickname(e.target.value)}
@@ -321,8 +329,10 @@ function PostingsPage() {
           
           {/* 정렬 방식 선택 */}
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>정렬</label>
+            <label htmlFor="search-sort" style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>정렬</label>
             <select
+              id="search-sort"
+              name="sortType"
               value={sortType}
               onChange={(e) => handleSortTypeChange(e.target.value as 'date' | 'distance')}
               style={{
