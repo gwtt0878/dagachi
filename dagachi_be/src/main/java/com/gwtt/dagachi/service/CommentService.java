@@ -29,7 +29,7 @@ public class CommentService {
     Posting posting =
         postingRepository
             .findById(postingId)
-            .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
+            .orElseThrow(() -> new DagachiException(ErrorCode.POSTING_NOT_FOUND));
     Page<Comment> comments = commentRepository.findByPostingFetched(posting, pageable);
     return comments.map(CommentResponseDto::of);
   }

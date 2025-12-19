@@ -42,7 +42,7 @@ function PostingsPage() {
       setTotalPages(data.totalPages)
       setCurrentPage(data.number)
     } catch (err) {
-      if (err instanceof AxiosError && err.status === 403) {
+      if (err instanceof AxiosError && err.response?.status === 403) {
         navigate('/login')
         return
       }
@@ -78,7 +78,7 @@ function PostingsPage() {
         status: searchStatus || undefined,
         authorNickname: searchAuthorNickname || undefined,
         page: 0,
-        sortByDistance: sortType === 'distance' || undefined,
+        sortByDistance: sortType === 'distance',
         userLatitude: sortType === 'distance' && userLocation ? userLocation.latitude : undefined,
         userLongitude: sortType === 'distance' && userLocation ? userLocation.longitude : undefined
       }

@@ -67,9 +67,9 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
             {...options, enableHighAccuracy: false}
           )
         }
-        reject(
-          getErrorReject(error)
-        )
+        else {
+          reject(getErrorReject(error))
+        }
       },
       options
     )
