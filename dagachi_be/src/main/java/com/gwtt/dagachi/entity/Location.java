@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Location {
-  @Column(precision = 8)
+  @Column(columnDefinition = "DECIMAL(10, 8)")
   private Double latitude;
 
-  @Column(precision = 8)
+  @Column(columnDefinition = "DECIMAL(10, 8)")
   private Double longitude;
 
   @Builder

@@ -102,7 +102,7 @@ function NaverMap(Props: MapProps) {
 
     }
 
-  }, [centerLat, centerLng])
+  }, [centerLat, centerLng, Props.latitude, Props.longitude, Props.withInteraction])
   return (
     <div ref={mapRef} id="map" style={{ width: '100%', height: '400px' }}></div>
   )

@@ -12,11 +12,10 @@ import com.gwtt.dagachi.repository.CommentRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -92,30 +91,37 @@ public class CommentService {
 
   @Transactional
   public CommentResponseDto updateComment(
-      Long commentId, Long userId, CommentUpdateRequestDto commentUpdateRequestDto) {
+      Long postingId, Long commentId, Long currentUserId, CommentUpdateRequestDto commentUpdateRequestDto) {
     Comment comment =
         commentRepository
             .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    if (!comment.getAuthor().getId().equals(userId)) {
+    
+
+    if (!comment.getAuthor().getId().equals(currentUserId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);
     }
     if (comment.getDeletedAt() != null) {
       throw new DagachiException(ErrorCode.COMMENT_ALREADY_DELETED);
     }
-
+    if (!comment.getPosting().getId().equals(postingId)) {
+      throw new DagachiException(ErrorCode.COMMENT_POSTING_NOT_MATCHED);
+    }
     comment.updateContent(commentUpdateRequestDto.getContent());
     return CommentResponseDto.of(comment);
   }
 
   @Transactional
-  public void deleteComment(Long commentId, Long userId) {
+  public void deleteComment(Long postingId, Long commentId, Long currentUserId) {
     Comment comment =
         commentRepository
             .findByIdForUpdate(commentId)
             .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    if (!comment.getAuthor().getId().equals(userId)) {
+    if (!comment.getAuthor().getId().equals(currentUserId)) {
       throw new DagachiException(ErrorCode.COMMENT_NOT_AUTHORIZED);
+    }
+    if (!comment.getPosting().getId().equals(postingId)) {
+      throw new DagachiException(ErrorCode.COMMENT_POSTING_NOT_MATCHED);
     }
     comment.delete();
   }

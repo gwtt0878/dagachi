@@ -16,6 +16,7 @@ import com.gwtt.dagachi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -72,9 +73,12 @@ public class PostingService {
   }
 
   @Transactional
-  @CacheEvict(
-      value = {"posting", "postings"},
-      key = "#id")
+  @Caching(
+    evict = {
+      @CacheEvict(value = "posting", key = "#id"),
+      @CacheEvict(value = "postings", allEntries = true)
+    }
+  )
   public PostingResponseDto updatePosting(
       Long id, Long currentUserId, PostingUpdateRequestDto postingUpdateRequestDto) {
     Posting posting =
@@ -87,9 +91,12 @@ public class PostingService {
   }
 
   @Transactional
-  @CacheEvict(
-      value = {"posting", "postings"},
-      key = "#id")
+  @Caching(
+    evict = {
+      @CacheEvict(value = "posting", key = "#id"),
+      @CacheEvict(value = "postings", allEntries = true)
+    }
+  )
   public void deletePosting(Long id, Long currentUserId) {
     Posting posting =
         postingRepository

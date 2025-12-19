@@ -13,11 +13,11 @@ import com.gwtt.dagachi.repository.ParticipationRepository;
 import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import java.time.LocalDateTime;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +74,8 @@ public class ParticipationService {
   }
 
   @Transactional(readOnly = true)
-  public Page<ParticipationResponseDto> getParticipationsByPostingId(Long userId, Long postingId, Pageable pageable) {
+  public Page<ParticipationResponseDto> getParticipationsByPostingId(
+      Long userId, Long postingId, Pageable pageable) {
     Posting posting =
         postingRepository
             .findByIdFetched(postingId)
@@ -84,7 +85,8 @@ public class ParticipationService {
       throw new DagachiException(ErrorCode.POSTING_NOT_AUTHORIZED);
     }
 
-    Page<Participation> participations = participationRepository.findByPostingFetched(posting, pageable);
+    Page<Participation> participations =
+        participationRepository.findByPostingFetched(posting, pageable);
     return participations.map(ParticipationResponseDto::of);
   }
 
@@ -189,6 +191,7 @@ public class ParticipationService {
   }
 
   @Transactional
+  @CacheEvict(value = "participations", allEntries = true)
   public void rejectUser(Long authorId, Long participationId) {
     User author =
         userRepository

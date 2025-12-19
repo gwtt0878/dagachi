@@ -3,6 +3,7 @@ package com.gwtt.dagachi.config;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,8 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 @Configuration
 @EnableCaching
@@ -36,10 +39,15 @@ public class RedisConfig {
   @Bean
   public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
     ObjectMapper cacheObjectMapper = new ObjectMapper();
+
+    PolymorphicTypeValidator validator = BasicPolymorphicTypeValidator.builder()
+    .allowIfSubType("com.gwtt.dagachi")
+    .build();
+
     cacheObjectMapper.registerModule(new JavaTimeModule());
     cacheObjectMapper.activateDefaultTyping(
-        cacheObjectMapper.getPolymorphicTypeValidator(),
-        ObjectMapper.DefaultTyping.NON_FINAL_AND_ENUMS,
+        validator,
+        ObjectMapper.DefaultTyping.NON_FINAL,
         JsonTypeInfo.As.PROPERTY);
     cacheObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
