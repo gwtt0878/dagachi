@@ -20,6 +20,7 @@ function NaverMap(Props: MapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [centerLat, setCenterLat] = useState<number | null>(null)
   const [centerLng, setCenterLng] = useState<number | null>(null)
+  const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   useEffect(() => {
     getCurrentLocation().then((location) => {
@@ -42,11 +43,14 @@ function NaverMap(Props: MapProps) {
     script.type = 'text/javascript';
     script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
     script.async = true;
+    script.onload = () => {
+      setIsMapLoaded(true)
+    }
     document.head.appendChild(script);
   }, []);
 
   useEffect(() => {
-    if (centerLat === null || centerLng === null) return;
+    if (centerLat === null || centerLng === null || !isMapLoaded) return;
     const navermaps = window.naver;
     const map = new navermaps.maps.Map('map', {
       center: new navermaps.maps.LatLng(centerLat, centerLng),
@@ -99,10 +103,9 @@ function NaverMap(Props: MapProps) {
       });
       map.setCenter(new navermaps.maps.LatLng(Props.latitude, Props.longitude));
       pickedPoint.setPosition(new navermaps.maps.LatLng(Props.latitude, Props.longitude));
-
     }
 
-  }, [centerLat, centerLng, Props.latitude, Props.longitude, Props.withInteraction])
+  }, [isMapLoaded, centerLat, centerLng, Props.latitude, Props.longitude, Props.withInteraction])
   return (
     <div ref={mapRef} id="map" style={{ width: '100%', height: '400px' }}></div>
   )
