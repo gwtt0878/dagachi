@@ -28,6 +28,7 @@ public class PostingService {
   private final PostingRepository postingRepository;
   private final UserRepository userRepository;
 
+  @Cacheable(value = "postings", key = "#pageable.pageNumber")
   public Page<PostingSimpleResponseDto> getPostings(Pageable pageable) {
     Page<Posting> postings = postingRepository.findAllFetched(pageable);
     return postings.map(PostingSimpleResponseDto::of);
@@ -43,9 +44,7 @@ public class PostingService {
   }
 
   @Transactional
-  @CacheEvict(
-      value = {"posting", "postings"},
-      allEntries = true)
+  @CacheEvict(value = "postings", allEntries = true)
   public PostingResponseDto createPosting(
       Long authorId, PostingCreateRequestDto postingRequestDto) {
     User user =

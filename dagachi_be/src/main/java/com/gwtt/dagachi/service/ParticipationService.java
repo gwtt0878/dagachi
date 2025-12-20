@@ -14,6 +14,8 @@ import com.gwtt.dagachi.repository.PostingRepository;
 import com.gwtt.dagachi.repository.UserRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,8 @@ public class ParticipationService {
   private final PostingRepository postingRepository;
   private final UserRepository userRepository;
   private final ParticipationRepository participationRepository;
+
+  private final CacheManager cacheManager;
 
   @Transactional(readOnly = true)
   @Cacheable(value = "participations", key = "#userId + ':' + #postingId")
@@ -147,7 +151,6 @@ public class ParticipationService {
   }
 
   @Transactional
-  @CacheEvict(value = "participations", allEntries = true)
   public void approveUser(Long authorId, Long participationId) {
     User author =
         userRepository
@@ -188,10 +191,12 @@ public class ParticipationService {
     if (currentApprovedUsers + 1 == posting.getMaxCapacity()) {
       posting.setStatus(PostingStatus.RECRUITED);
     }
+
+    evictParticipationCache(
+        participation.getParticipant().getId(), participation.getPosting().getId());
   }
 
   @Transactional
-  @CacheEvict(value = "participations", allEntries = true)
   public void rejectUser(Long authorId, Long participationId) {
     User author =
         userRepository
@@ -215,6 +220,16 @@ public class ParticipationService {
 
     if (posting.getStatus().equals(PostingStatus.RECRUITED)) {
       posting.setStatus(PostingStatus.RECRUITING);
+    }
+
+    evictParticipationCache(
+        participation.getParticipant().getId(), participation.getPosting().getId());
+  }
+
+  private void evictParticipationCache(Long userId, Long postingId) {
+    Cache cache = cacheManager.getCache("participations");
+    if (cache != null) {
+      cache.evict(userId + ":" + postingId);
     }
   }
 }
