@@ -28,7 +28,7 @@ public class PostingService {
   private final PostingRepository postingRepository;
   private final UserRepository userRepository;
 
-  @Cacheable(value = "postings", key = "#pageable.pageNumber")
+  @Cacheable(value = "postings", key = "#pageable")
   public Page<PostingSimpleResponseDto> getPostings(Pageable pageable) {
     Page<Posting> postings = postingRepository.findAllFetched(pageable);
     return postings.map(PostingSimpleResponseDto::of);

@@ -22,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -227,9 +229,15 @@ public class ParticipationService {
   }
 
   private void evictParticipationCache(Long userId, Long postingId) {
-    Cache cache = cacheManager.getCache("participations");
-    if (cache != null) {
-      cache.evict(userId + ":" + postingId);
-    }
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCommit() {
+            Cache cache = cacheManager.getCache("participations");
+            if (cache != null) {
+              cache.evict(userId + ":" + postingId);
+            }
+          }
+        });
   }
 }
