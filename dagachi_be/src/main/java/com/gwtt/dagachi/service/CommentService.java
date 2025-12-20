@@ -35,15 +35,6 @@ public class CommentService {
     return comments.map(CommentResponseDto::of);
   }
 
-  @Transactional(readOnly = true)
-  public CommentResponseDto getCommentById(Long commentId) {
-    Comment comment =
-        commentRepository
-            .findByIdFetched(commentId)
-            .orElseThrow(() -> new DagachiException(ErrorCode.COMMENT_NOT_FOUND));
-    return CommentResponseDto.of(comment);
-  }
-
   @Transactional
   public CommentResponseDto createComment(
       Long postingId, Long userId, CommentCreateRequestDto commentCreateRequestDto) {
