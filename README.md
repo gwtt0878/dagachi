@@ -72,6 +72,12 @@ dagachi/
 - Soft Delete 구현으로 데이터 삭제시 복구 가능
 - API 응답 캐싱 (Redis)
 
+### 실제 기능 예시
+
+![게시글](/img/dagachi_posting.png)
+![댓글](/img/dagachi_comments.png)
+![검색 및 거리 정보](/img/dagachi_search.png)
+
 ## ⚙️ 환경변수 설정
 
 FE: `./dagachi_fe/.env.production`
@@ -82,11 +88,11 @@ BE: `./.env.fe`
 
 ### 배포 구조
 
-![아키텍처](./img/pub_arch.png)
+![아키텍처](/img/pub_arch.png)
 
 ### ERD
 
-![erd](./img/erd.png)
+![erd](/img/erd.png)
 
 ## 📄 라이선스
 
