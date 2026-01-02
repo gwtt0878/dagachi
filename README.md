@@ -21,6 +21,11 @@
 ### DevOps
 - Docker & Docker Compose
 - Nginx
+- Github Actions
+
+### Cloud
+
+- AWS EC2, RDS(MySQL)
 
 ## 🚀 시작하기
 
@@ -60,15 +65,41 @@ npm run dev
 dagachi/
 ├── dagachi_be/          # Spring Boot 백엔드
 ├── dagachi_fe/          # React 프론트엔드
+├── dagachi_db/          # 로컬 MySQL 설정 파일
+├── nginx.conf           # Nginx 리버스 프록시 및 HTTPS 연결 설정
 └── docker-compose.yml   # Docker Compose 설정
 ```
+
+## 주요 기능
+
+- JWT 기반 로그인/회원가입
+- 모집글 관리 (참여자 승인/거절)
+- 계층형 댓글/대댓글
+- 네이버 지도와 연동된 위치정보 기록
+- Soft Delete 구현으로 데이터 삭제시 복구 가능
+- API 응답 캐싱 (Redis)
+
+### 실제 기능 예시
+
+![게시글](/img/dagachi_posting.png)
+![댓글](/img/dagachi_comments.png)
+![검색 및 거리 정보](/img/dagachi_search.png)
 
 ## ⚙️ 환경변수 설정
 
 FE: `./dagachi_fe/.env.production`
 
-
 BE: `./.env.fe`
+
+## 시스템 아키텍처
+
+### 배포 구조
+
+![아키텍처](/img/pub_arch.png)
+
+### ERD
+
+![erd](/img/erd.png)
 
 ## 📄 라이선스
 
