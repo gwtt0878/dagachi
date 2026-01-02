@@ -63,12 +63,30 @@ dagachi/
 └── docker-compose.yml   # Docker Compose 설정
 ```
 
+## 주요 기능
+
+- JWT 기반 로그인/회원가입
+- 모집글 관리 (참여자 승인/거절)
+- 계층형 댓글/대댓글
+- 네이버 지도와 연동된 위치정보 기록
+- Soft Delete 구현으로 데이터 삭제시 복구 가능
+- API 응답 캐싱 (Redis)
+
 ## ⚙️ 환경변수 설정
 
 FE: `./dagachi_fe/.env.production`
 
-
 BE: `./.env.fe`
+
+## 시스템 아키텍처
+
+### 배포 구조
+
+![아키텍처](./img/pub_arch.png)
+
+### ERD
+
+![erd](./img/erd.png)
 
 ## 📄 라이선스
 
