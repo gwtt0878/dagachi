@@ -21,6 +21,11 @@
 ### DevOps
 - Docker & Docker Compose
 - Nginx
+- Github Actions
+
+### Cloud
+
+- AWS EC2, RDS(MySQL)
 
 ## 🚀 시작하기
 
@@ -60,6 +65,8 @@ npm run dev
 dagachi/
 ├── dagachi_be/          # Spring Boot 백엔드
 ├── dagachi_fe/          # React 프론트엔드
+├── dagachi_db/          # 로컬 MySQL 설정 파일
+├── nginx.conf           # Nginx 리버스 프록시 및 HTTPS 연결 설정
 └── docker-compose.yml   # Docker Compose 설정
 ```
 
